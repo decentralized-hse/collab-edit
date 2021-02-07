@@ -1,0 +1,66 @@
+<html>
+
+<head>
+    <title>WebRTC Text Demo</title>
+    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+
+<style>
+    body {
+        background: #eee;
+        padding: 5% 0;
+    }
+</style>
+
+<body>
+<div class="container text-center" id="loginPage">
+
+    <div class="row">
+        <div class="col-md-4 col-md-offset-4">
+            <h2>WebRTC Text Demo. Please sign in</h2>
+            <label class="sr-only" for="usernameInput">Login</label>
+            <input autofocus="" class="form-control formgroup"
+                   id="usernameInput" placeholder="Login"
+                   required="" type="email">
+            <button class="btn btn-lg btn-primary btnblock" id="loginBtn">
+                Sign in
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<div class="call-page container" id="callPage">
+
+    <div class="row">
+        <div class="col-md-4 col-md-offset-4 text-center">
+            <div class="panel panel-primary">
+                <div class="panel-heading">Text chat</div>
+                <div class="panel-body text-left" id="chatarea"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row text-center form-group">
+        <div class="col-md-12">
+            <input id="callToUsernameInput" placeholder="username to call"
+                   type="text"/>
+            <button class="btn-success btn" id="callBtn">Call</button>
+            <button class="btn-danger btn" id="hangUpBtn">Hang Up</button>
+        </div>
+    </div>
+
+    <div class="row text-center">
+        <div class="col-md-12">
+            <input id="msgInput" placeholder="message" type="text"/>
+            <button class="btn-success btn" id="sendMsgBtn">Send</button>
+        </div>
+    </div>
+
+</div>
+
+<script src="client.js"></script>
+
+</body>
+
+</html>
