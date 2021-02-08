@@ -3,6 +3,7 @@ val kotlinVersion: String by project
 val logbackVersion: String by project
 val selenideVersion: String by project
 val coroutinesVersion: String by project
+val kotestVersion: String by project
 
 plugins {
     application
@@ -39,11 +40,12 @@ val integrationTest = task<Test>("integrationTest") {
 
     shouldRunAfter("test")
     dependsOn(":client:browserProductionWebpack")
+
+    useJUnitPlatform()
 }
 
 // todo: uncomment but can fail on CI
 //tasks.check { dependsOn(integrationTest) }
-
 
 dependencies {
     implementation(project(":protocol-signal"))
@@ -55,8 +57,8 @@ dependencies {
     implementation("io.ktor:ktor-websockets:$ktorVersion")
     testImplementation("io.ktor:ktor-server-tests:$ktorVersion")
 
+    intTestImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    intTestImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     intTestImplementation("com.codeborne:selenide:$selenideVersion")
     intTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-    intTestImplementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")
-    intTestImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
 }

@@ -3,15 +3,14 @@ package com.github.servb.collabEdit.intTest
 import com.codeborne.selenide.Selenide.*
 import com.codeborne.selenide.conditions.Text
 import com.github.servb.collabEdit.server.signal.module
+import io.kotest.core.spec.style.AnnotationSpec
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import kotlin.test.Ignore
-import kotlin.test.Test
 
-class Test2Clients {
+class Test2Clients : AnnotationSpec() {
 
     @Test
-    @Ignore("TODO")
+    @Ignore
     fun testSameUsernameForbidden() {
         TODO()
     }
