@@ -3,6 +3,7 @@ import com.github.servb.collabEdit.protocol.signal.SessionDescription
 import com.github.servb.collabEdit.protocol.signal.ToClientMessage
 import com.github.servb.collabEdit.protocol.signal.ToServerMessage
 import kotlinext.js.jsObject
+import kotlinext.js.require
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.w3c.dom.HTMLButtonElement
@@ -38,6 +39,8 @@ fun send(msg: ToServerMessage) {
 }
 
 fun main() {
+    require("bootstrap/dist/css/bootstrap.min.css")
+
     conn.onopen = {
         console.log("Connected to the signaling server")
     }
