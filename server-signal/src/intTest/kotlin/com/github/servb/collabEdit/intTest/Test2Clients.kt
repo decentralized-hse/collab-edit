@@ -49,12 +49,17 @@ class Test2Clients : BehaviorSpec({
                     element("#usernameInput").sendKeys("user1")
                     element("#loginBtn").click()
 
-                    xand("I login to the second tab with the same name") {
-                        TODO()
+                    and("I login to the second tab with the same name") {
+                        switchTo().window(1)
+                        element("#usernameInput").sendKeys("user1")
+                        element("#loginBtn").click()
+
+                        then("error should be shown") {
+                            switchTo().alert().accept()
+                        }
                     }
 
                     and("I login to the second tab") {
-                        switchTo().window(1)
                         element("#usernameInput").sendKeys("user2")
                         element("#loginBtn").click()
 
