@@ -28,7 +28,7 @@ val msgInput = document.querySelector("#msgInput") as HTMLInputElement
 val sendMsgBtn = document.querySelector("#sendMsgBtn") as HTMLButtonElement
 
 val chatArea = document.querySelector("#chatarea") as HTMLDivElement
-lateinit var yourConn: RTCPeerConnection
+lateinit var yourConn: webkitRTCPeerConnection
 lateinit var dataChannel: RTCDataChannel
 
 val conn = WebSocket("ws://localhost:9090")
@@ -107,16 +107,16 @@ fun handleLogin(success: Boolean) {
         loginPage.style.display = "none"
         callPage.style.display = "block"
 
-        val configuration = jsObject<RTCConfiguration> {
-            iceTransportPolicy = "all"
+        val configuration = jsObject<webkitRTCConfiguration> {
             iceServers = arrayOf(
                 jsObject {
-                    urls = arrayOf("stun:stun1.l.google.com:19302")
+                    url = "stun:stun1.l.google.com:19302"
                 },
             )
         }
 
-        yourConn = RTCPeerConnection(configuration)
+        yourConn =
+            webkitRTCPeerConnection(configuration, jsObject { optional = arrayOf(jsObject { RtpDataChannels = true }) })
 
         yourConn.onicecandidate = {
             console.log("yourConn.onicecandidate", it)
@@ -136,10 +136,10 @@ fun handleLogin(success: Boolean) {
         }
 
         yourConn.onconnectionstatechange = {
-            console.log("onconnectionstatechange", it)
+            console.log("onconnectionstatechange", yourConn.iceConnectionState, it)
         }
 
-        dataChannel = yourConn.createDataChannel("channel1")
+        dataChannel = yourConn.createDataChannel("channel1", jsObject { reliable = true })
 
         dataChannel.onerror = {
             console.log("Ooops...error:", it)

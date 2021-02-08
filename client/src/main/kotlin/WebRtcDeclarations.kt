@@ -3,17 +3,14 @@ import org.w3c.dom.MessageEvent
 import org.w3c.dom.events.Event
 import kotlin.js.Promise
 
-external interface RTCIceServer {
+external interface webkitRTCIceServer {
 
-    var urls: Array<String>
-    var credential: String?
-    var username: String?
+    var url: String
 }
 
-external interface RTCConfiguration {
+external interface webkitRTCConfiguration {
 
-    var iceServers: Array<RTCIceServer>?
-    var iceTransportPolicy: String?  // relay, all
+    var iceServers: Array<webkitRTCIceServer>?
 }
 
 external interface RTCIceCandidate {
@@ -37,7 +34,10 @@ external interface RTCPeerConnectionIceEvent {
     val candidate: RTCIceCandidate?
 }
 
-external interface RTCDataChannelInit
+external interface webkitRTCDataChannelInit {
+
+    var reliable: Boolean
+}
 
 external interface RTCDataChannel {
 
@@ -63,13 +63,25 @@ external interface RTCSessionDescriptionInit : RTCSessionDescription {
     override var sdp: String
 }
 
-external class RTCPeerConnection(connection: RTCConfiguration) {
+external interface B {
+
+    var RtpDataChannels: Boolean
+}
+
+external interface A {
+
+    var optional: Array<B>?
+}
+
+external class webkitRTCPeerConnection(connection: webkitRTCConfiguration, a: A) {
 
     var onicecandidate: ((RTCPeerConnectionIceEvent) -> dynamic)?
     var onconnectionstatechange: ((Event) -> dynamic)?
 
+    val iceConnectionState: String
+
     fun addIceCandidate(candidate: RTCIceCandidateInit)
-    fun createDataChannel(label: String, options: RTCDataChannelInit = definedExternally): RTCDataChannel
+    fun createDataChannel(label: String, options: webkitRTCDataChannelInit = definedExternally): RTCDataChannel
     fun createAnswer(options: RTCAnswerOptions = definedExternally): Promise<RTCSessionDescription>
     fun createOffer(options: RTCOfferOptions = definedExternally): Promise<RTCSessionDescription>
     fun setLocalDescription(offer: RTCSessionDescription)
