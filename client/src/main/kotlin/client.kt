@@ -14,7 +14,9 @@ import org.w3c.dom.WebSocket
 var name: String? = null
 var connectedUser: String? = null
 
-val loginPage = document.querySelector("#loginPage") as HTMLDivElement
+val loginPage = (document.querySelector("#loginPage") as HTMLDivElement).apply {
+    style.display = "none"
+}
 val usernameInput = document.querySelector("#usernameInput") as HTMLInputElement
 val loginBtn = document.querySelector("#loginBtn") as HTMLButtonElement
 
@@ -43,6 +45,8 @@ fun main() {
 
     conn.onopen = {
         console.log("Connected to the signaling server")
+        loginPage.style.display = "block"
+        Unit
     }
 
     conn.onmessage = {
