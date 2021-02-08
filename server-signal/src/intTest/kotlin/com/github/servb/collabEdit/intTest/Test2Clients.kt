@@ -9,7 +9,7 @@ import io.kotest.core.spec.style.scopes.GivenScope
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 
-fun BehaviorSpecRootScope.signalingServer(test: suspend GivenScope.() -> Unit) {
+fun BehaviorSpecRootScope.givenSignalingServer(test: suspend GivenScope.() -> Unit) {
     given("signaling server") {
         val signalServer = embeddedServer(Netty, port = 9090) { module(testing = true) }
         signalServer.start()
@@ -41,7 +41,7 @@ suspend fun GivenScope.andAnotherClientTab(test: suspend GivenScope.() -> Unit) 
 }
 
 class Test2Clients : BehaviorSpec({
-    signalingServer {
+    givenSignalingServer {
         andClientTab {
             andAnotherClientTab {
                 `when`("I login to the first tab") {
