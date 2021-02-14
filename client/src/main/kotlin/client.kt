@@ -6,10 +6,7 @@ import kotlinext.js.jsObject
 import kotlinext.js.require
 import kotlinx.browser.document
 import kotlinx.browser.window
-import org.w3c.dom.HTMLButtonElement
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.WebSocket
+import org.w3c.dom.*
 
 var name: String? = null
 var connectedUser: String? = null
@@ -27,10 +24,8 @@ val callToUsernameInput = document.querySelector("#callToUsernameInput") as HTML
 val callBtn = document.querySelector("#callBtn") as HTMLButtonElement
 
 val hangUpBtn = document.querySelector("#hangUpBtn") as HTMLButtonElement
-val msgInput = document.querySelector("#msgInput") as HTMLInputElement
-val sendMsgBtn = document.querySelector("#sendMsgBtn") as HTMLButtonElement
+val text = document.querySelector("#text") as HTMLTextAreaElement
 
-val chatArea = document.querySelector("#chatarea") as HTMLDivElement
 lateinit var yourConn: webkitRTCPeerConnection
 lateinit var dataChannel: RTCDataChannel
 
@@ -98,12 +93,9 @@ fun main() {
         handleLeave()
     })
 
-    sendMsgBtn.addEventListener("click", {
-        val value = msgInput.value
-        chatArea.innerHTML += "$name: $value<br />"
-
+    text.addEventListener("input", {
+        val value = text.value
         dataChannel.send(value)
-        msgInput.value = ""
     })
 }
 
@@ -153,7 +145,7 @@ fun handleLogin(success: Boolean) {
         }
 
         dataChannel.onmessage = {
-            chatArea.innerHTML += "$connectedUser: ${it.data}<br/>"
+            text.value = it.data as String
             Unit
         }
 

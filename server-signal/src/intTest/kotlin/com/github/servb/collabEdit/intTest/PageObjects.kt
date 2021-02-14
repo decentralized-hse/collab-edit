@@ -28,10 +28,9 @@ class CallPage(val driver: SelenideDriver, val userName: String) {
         driver.`$`("#callBtn").click()
     }
 
-    fun send(message: String) {
-        driver.`$`("#msgInput").sendKeys(message)
-        driver.`$`("#sendMsgBtn").click()
+    fun input(message: String) {
+        driver.`$`("#text").sendKeys(message)
     }
 
-    val chatArea: SelenideElement get() = driver.`$`("#chatarea")
+    val text: SelenideElement get() = driver.`$`("#text")
 }

@@ -1,6 +1,6 @@
 package com.github.servb.collabEdit.intTest
 
-import com.codeborne.selenide.conditions.Text
+import com.codeborne.selenide.Condition.exactValue
 import com.github.servb.collabEdit.server.signal.module
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.core.spec.style.scopes.BehaviorSpecRootScope
@@ -50,19 +50,31 @@ class Test2Clients : BehaviorSpec({
                         and("I call the first tab from the second tab") {
                             callPage2.call(callPage1.userName)
 
-                            and("I send message from the second tab") {
-                                val message = "my message, ${System.currentTimeMillis()} ms"
+                            and("I input text from the second tab") {
+                                val text1 = "my message, ${System.currentTimeMillis()} ms"
 
-                                callPage2.send(message)
+                                callPage2.input(text1)
 
-                                val chatEntry = "${callPage2.userName}: $message"
-
-                                then("chat in the second tab should contain message") {
-                                    callPage2.chatArea.shouldHave(Text(chatEntry))
+                                then("chat in the second tab should contain text") {
+                                    callPage2.text.shouldHave(exactValue(text1))
                                 }
 
-                                then("chat in the first tab should contain message") {
-                                    callPage1.chatArea.shouldHave(Text(chatEntry))
+                                then("chat in the first tab should contain text") {
+                                    callPage1.text.shouldHave(exactValue(text1))
+                                }
+
+                                and("I add text from the first tab") {
+                                    val text2 = "\nmy message 2, ${System.currentTimeMillis()} ms"
+
+                                    callPage1.input(text2)
+
+                                    then("chat in the second tab should contain old text and appended text") {
+                                        callPage2.text.shouldHave(exactValue(text1 + text2))
+                                    }
+
+                                    then("chat in the first tab should contain old text and appended text") {
+                                        callPage1.text.shouldHave(exactValue(text1 + text2))
+                                    }
                                 }
                             }
                         }
