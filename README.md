@@ -1,5 +1,10 @@
 # collab-edit
 
+## Supported browsers
+
+For now, only Chromium-based browsers are supported. We have to use `webkit` API because universal API has problems with
+data channels: [1](https://github.com/webrtc/samples/issues/1227), [2](https://github.com/webrtc/samples/issues/1251).
+
 ## Building client
 
 ```shell
