@@ -81,7 +81,7 @@ class Test2Clients : BehaviorSpec({
 
                                 then("chat in the first tab should contain message") {
                                     switchTo().window(0)
-                                    element("#chatarea").shouldHave(Text(message))
+                                    element("#chatarea").shouldHave(Text(chatEntry))
                                 }
                             }
                         }
