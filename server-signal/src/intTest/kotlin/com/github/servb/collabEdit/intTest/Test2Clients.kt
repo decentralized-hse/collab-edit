@@ -1,6 +1,5 @@
 package com.github.servb.collabEdit.intTest
 
-import com.codeborne.selenide.Selenide.*
 import com.codeborne.selenide.conditions.Text
 import com.github.servb.collabEdit.server.signal.module
 import io.kotest.core.spec.style.BehaviorSpec
@@ -20,68 +19,50 @@ fun BehaviorSpecRootScope.givenSignalingServer(test: suspend GivenScope.() -> Un
     }
 }
 
-suspend fun GivenScope.andClientTab(test: suspend GivenScope.() -> Unit) {
+suspend fun GivenScope.andClientTab(test: suspend GivenScope.(LoginPage) -> Unit) {
     and("client tab") {
-        open(ConnectionUtil.clientUrl)
+        val client = openClient()
 
-        test()
-    }
-}
+        test(client)
 
-suspend fun GivenScope.andAnotherClientTab(test: suspend GivenScope.() -> Unit) {
-    and("client tab") {
-        executeJavaScript<Unit>("window.open()")
-        switchTo().window(1)
-        open(ConnectionUtil.clientUrl)
-
-        test()
-
-        switchTo().window(1).close()
+        client.driver.close()
     }
 }
 
 class Test2Clients : BehaviorSpec({
     givenSignalingServer {
-        andClientTab {
-            andAnotherClientTab {
+        andClientTab { loginPage1 ->
+            andClientTab { loginPage2 ->
                 `when`("I login to the first tab") {
-                    switchTo().window(0)
-                    element("#usernameInput").sendKeys("user1")
-                    element("#loginBtn").click()
+                    val callPage1 = loginPage1.loginAs("user1")
 
                     and("I login to the second tab with the same name") {
-                        switchTo().window(1)
-                        element("#usernameInput").sendKeys("user1")
-                        element("#loginBtn").click()
+                        loginPage2.loginAs(callPage1.userName)
 
                         then("error should be shown") {
-                            switchTo().alert().accept()
+                            loginPage2.driver.switchTo().alert().accept()
                         }
                     }
 
                     and("I login to the second tab") {
-                        element("#usernameInput").sendKeys("user2")
-                        element("#loginBtn").click()
+                        val callPage2 = loginPage2.loginAs("user2")
 
                         and("I call the first tab from the second tab") {
-                            element("#callToUsernameInput").sendKeys("user1")
-                            element("#callBtn").click()
+                            callPage2.call(callPage1.userName)
 
                             and("I send message from the second tab") {
                                 val message = "my message, ${System.currentTimeMillis()} ms"
 
-                                element("#msgInput").sendKeys(message)
-                                element("#sendMsgBtn").click()
+                                callPage2.send(message)
 
-                                val chatEntry = "user2: $message"
+                                val chatEntry = "${callPage2.userName}: $message"
 
                                 then("chat in the second tab should contain message") {
-                                    element("#chatarea").shouldHave(Text(chatEntry))
+                                    callPage2.chatArea.shouldHave(Text(chatEntry))
                                 }
 
                                 then("chat in the first tab should contain message") {
-                                    switchTo().window(0)
-                                    element("#chatarea").shouldHave(Text(chatEntry))
+                                    callPage1.chatArea.shouldHave(Text(chatEntry))
                                 }
                             }
                         }
