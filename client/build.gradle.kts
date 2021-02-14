@@ -30,6 +30,11 @@ kotlin {
                 cssSupport.enabled = true
                 cssSupport.mode = EXTRACT
             }
+
+            runTask {
+                cssSupport.enabled = true
+                cssSupport.mode = EXTRACT
+            }
         }
     }
 }
