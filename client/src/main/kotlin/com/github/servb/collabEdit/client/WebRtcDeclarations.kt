@@ -1,3 +1,5 @@
+package com.github.servb.collabEdit.client
+
 import org.w3c.dom.ErrorEvent
 import org.w3c.dom.MessageEvent
 import org.w3c.dom.events.Event

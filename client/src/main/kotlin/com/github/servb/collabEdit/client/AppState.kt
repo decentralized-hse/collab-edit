@@ -1,3 +1,5 @@
+package com.github.servb.collabEdit.client
+
 sealed class AppState
 
 object NotConnectedPage : AppState()

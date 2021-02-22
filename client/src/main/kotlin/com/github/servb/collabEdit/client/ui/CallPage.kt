@@ -1,6 +1,6 @@
-package ui
+package com.github.servb.collabEdit.client.ui
 
-import CallPage
+import com.github.servb.collabEdit.client.CallPage
 import kotlinx.html.InputType
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction

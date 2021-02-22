@@ -1,3 +1,6 @@
+package com.github.servb.collabEdit.client
+
+import com.github.servb.collabEdit.client.ui.rootElement
 import com.github.servb.collabEdit.protocol.signal.CandidateDescription
 import com.github.servb.collabEdit.protocol.signal.SessionDescription
 import com.github.servb.collabEdit.protocol.signal.ToClientMessage
@@ -8,7 +11,6 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import org.w3c.dom.WebSocket
 import react.dom.render
-import ui.rootElement
 
 var name: String? = null
 var connectedUser: String? = null

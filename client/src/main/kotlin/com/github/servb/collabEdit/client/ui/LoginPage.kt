@@ -1,6 +1,6 @@
-package ui
+package com.github.servb.collabEdit.client.ui
 
-import LoginPage
+import com.github.servb.collabEdit.client.LoginPage
 import kotlinx.html.InputType
 import kotlinx.html.id
 import kotlinx.html.js.onClickFunction

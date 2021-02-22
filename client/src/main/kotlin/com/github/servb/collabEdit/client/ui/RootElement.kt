@@ -1,9 +1,9 @@
-package ui
+package com.github.servb.collabEdit.client.ui
 
-import AppState
-import CallPage
-import LoginPage
-import NotConnectedPage
+import com.github.servb.collabEdit.client.AppState
+import com.github.servb.collabEdit.client.CallPage
+import com.github.servb.collabEdit.client.LoginPage
+import com.github.servb.collabEdit.client.NotConnectedPage
 import react.*
 
 external interface RootElementProps : RProps {
