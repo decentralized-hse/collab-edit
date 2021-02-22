@@ -12,10 +12,13 @@ val kotlinxHtmlVersion: String by project
 val webrtcAdapterVersion: String by project
 val kotlinExtensionsVersion: String by project
 val bootstrapVersion: String by project
+val kotlinReactVersion: String by project
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinxHtmlVersion")
     implementation("org.jetbrains:kotlin-extensions:$kotlinExtensionsVersion")
+    implementation("org.jetbrains:kotlin-react:$kotlinReactVersion")
+    implementation("org.jetbrains:kotlin-react-dom:$kotlinReactVersion")
     implementation(npm("webrtc-adapter", webrtcAdapterVersion))
     implementation(npm("bootstrap", bootstrapVersion))
     implementation(project(":protocol-signal"))
