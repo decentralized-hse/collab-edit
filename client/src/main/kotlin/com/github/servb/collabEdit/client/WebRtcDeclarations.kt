@@ -43,6 +43,7 @@ external interface webkitRTCDataChannelInit {
 
 external interface RTCDataChannel {
 
+    var onopen: (() -> dynamic)?
     var onerror: ((ErrorEvent) -> dynamic)?
     var onmessage: ((MessageEvent) -> dynamic)?
     var onclose: (() -> dynamic)?

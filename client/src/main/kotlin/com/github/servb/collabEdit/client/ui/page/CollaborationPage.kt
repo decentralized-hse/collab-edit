@@ -1,31 +1,27 @@
 package com.github.servb.collabEdit.client.ui.page
 
-import com.github.servb.collabEdit.client.CallPage
+import com.github.servb.collabEdit.client.CollaborationPage
 import kotlinx.css.*
-import kotlinx.html.InputType
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
-import kotlinx.html.js.onInputFunction
-import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
 import react.*
+import react.dom.div
 import react.dom.h2
-import react.dom.input
+import react.dom.strong
 import react.dom.value
 import styled.css
 import styled.styledButton
 import styled.styledDiv
 import styled.styledTextArea
 
-external interface CallPageProps : RProps {
+external interface CollaborationPageProps : RProps {
 
-    var appState: CallPage
+    var appState: CollaborationPage
 }
 
-val callPage = functionalComponent<CallPageProps> { props ->
-    var userNameToCall by useState("")
-
+val collaborationPage = functionalComponent<CollaborationPageProps> { props ->
     styledDiv {
         css {
             display = Display.flex
@@ -46,31 +42,14 @@ val callPage = functionalComponent<CallPageProps> { props ->
                 justifyContent = JustifyContent.center
             }
 
-            input(type = InputType.text) {
-                attrs {
-                    id = "callToUsernameInput"
-                    placeholder = "username to call"
-                    onInputFunction = {
-                        userNameToCall = (it.target as HTMLInputElement).value
-                    }
-                    value = userNameToCall
-                }
+            div {
+                +"OK "
+                strong { +props.appState.userName }
+                +", connected to "
+                strong { +props.appState.otherUserName }
+                +". You can collaborate below."
             }
-            styledButton {
-                css {
-                    classes.addAll(listOf("btn-success", "btn"))
-                    marginLeft = 10.px
-                }
 
-                attrs {
-                    id = "callBtn"
-                    onClickFunction = {
-                        props.appState.onCall(userNameToCall)
-                    }
-                }
-
-                +"Connect"
-            }
             styledButton {
                 css {
                     classes.addAll(listOf("btn-danger", "btn"))
@@ -78,9 +57,9 @@ val callPage = functionalComponent<CallPageProps> { props ->
                 }
 
                 attrs {
-                    id = "hangUpBtn"
+                    id = "disconnectBtn"
                     onClickFunction = {
-                        props.appState.onLeave()
+                        props.appState.onDisconnect()
                     }
                 }
 
@@ -103,14 +82,14 @@ val callPage = functionalComponent<CallPageProps> { props ->
                     val text = (it.target as HTMLTextAreaElement).value
                     props.appState.onTextChange(text)
                 }
-                value = props.appState.inputText
+                value = props.appState.text
             }
         }
     }
 }
 
-fun RBuilder.callPage(handler: CallPageProps.() -> Unit): ReactElement {
-    return child(callPage) {
+fun RBuilder.collaborationPage(handler: CollaborationPageProps.() -> Unit): ReactElement {
+    return child(collaborationPage) {
         attrs.handler()
     }
 }

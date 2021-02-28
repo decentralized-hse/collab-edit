@@ -39,7 +39,7 @@ fun onLogin(userName: String) {
     }
 }
 
-fun onCall(userNameToCall: String) {
+fun onConnect(userNameToCall: String) {
     if (userNameToCall.isNotEmpty()) {
         connectedUser = userNameToCall
         yourConn.createOffer()
@@ -56,14 +56,22 @@ fun onCall(userNameToCall: String) {
     }
 }
 
-fun onLeave() {
+fun onDisconnect() {
     send(ToServerMessage.Leave(connectedUser!!))
 
     handleLeave()
 }
 
 fun onTextChange(text: String) {
-    render(CallPage(text, ::onCall, ::onLeave, ::onTextChange))
+    render(
+        CollaborationPage(
+            userName = name!!,
+            otherUserName = connectedUser!!,
+            text = text,
+            onDisconnect = ::onDisconnect,
+            onTextChange = ::onTextChange,
+        )
+    )
     dataChannel.send(text)
 }
 
@@ -99,7 +107,7 @@ fun handleLogin(success: Boolean) {
     if (!success) {
         window.alert("Ooops...try a different username")
     } else {
-        render(CallPage("", ::onCall, ::onLeave, ::onTextChange))
+        render(ConnectionPage(userName = name!!, onConnect = ::onConnect))
 
         val configuration = jsObject<webkitRTCConfiguration> {
             iceServers = arrayOf(
@@ -135,16 +143,42 @@ fun handleLogin(success: Boolean) {
 
         dataChannel = yourConn.createDataChannel("channel1", jsObject { reliable = true })
 
+        dataChannel.onopen = {
+            render(
+                CollaborationPage(
+                    userName = name!!,
+                    otherUserName = connectedUser!!,
+                    text = "",
+                    onDisconnect = ::onDisconnect,
+                    onTextChange = ::onTextChange,
+                )
+            )
+        }
+
         dataChannel.onerror = {
             console.log("Ooops...error:", it)
         }
 
         dataChannel.onmessage = {
-            render(CallPage(it.data as String, ::onCall, ::onLeave, ::onTextChange))
+            render(
+                CollaborationPage(
+                    userName = name!!,
+                    otherUserName = connectedUser!!,
+                    text = it.data as String,
+                    onDisconnect = ::onDisconnect,
+                    onTextChange = ::onTextChange,
+                )
+            )
         }
 
         dataChannel.onclose = {
             console.log("data channel is closed")
+            render(
+                ConnectionPage(
+                    userName = name!!,
+                    onConnect = ::onConnect,
+                )
+            )
         }
     }
 }

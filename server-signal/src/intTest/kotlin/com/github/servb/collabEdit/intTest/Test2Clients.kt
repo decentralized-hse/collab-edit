@@ -34,10 +34,10 @@ class Test2Clients : BehaviorSpec({
         andClientTab { loginPage1 ->
             andClientTab { loginPage2 ->
                 `when`("I login to the first tab") {
-                    val callPage1 = loginPage1.loginAs("user1")
+                    val connectionPage1 = loginPage1.loginAs("user1")
 
                     and("I login to the second tab with the same name") {
-                        loginPage2.loginAs(callPage1.userName)
+                        loginPage2.loginAs(connectionPage1.userName)
 
                         then("error should be shown") {
                             loginPage2.driver.switchTo().alert().accept()
@@ -45,35 +45,36 @@ class Test2Clients : BehaviorSpec({
                     }
 
                     and("I login to the second tab") {
-                        val callPage2 = loginPage2.loginAs("user2")
+                        val connectionPage2 = loginPage2.loginAs("user2")
 
                         and("I call the first tab from the second tab") {
-                            callPage2.call(callPage1.userName)
+                            val collaborationPage2 = connectionPage2.connect(connectionPage1.userName)
+                            val collaborationPage1 = connectionPage1.asConnectedTo(collaborationPage2.userName)
 
                             and("I input text from the second tab") {
                                 val text1 = "my message, ${System.currentTimeMillis()} ms"
 
-                                callPage2.input(text1)
+                                collaborationPage2.input(text1)
 
                                 then("chat in the second tab should contain text") {
-                                    callPage2.text.shouldHave(exactValue(text1))
+                                    collaborationPage2.text.shouldHave(exactValue(text1))
                                 }
 
                                 then("chat in the first tab should contain text") {
-                                    callPage1.text.shouldHave(exactValue(text1))
+                                    collaborationPage1.text.shouldHave(exactValue(text1))
                                 }
 
                                 and("I add text from the first tab") {
                                     val text2 = "\nmy message 2, ${System.currentTimeMillis()} ms"
 
-                                    callPage1.input(text2)
+                                    collaborationPage1.input(text2)
 
                                     then("chat in the second tab should contain old text and appended text") {
-                                        callPage2.text.shouldHave(exactValue(text1 + text2))
+                                        collaborationPage2.text.shouldHave(exactValue(text1 + text2))
                                     }
 
                                     then("chat in the first tab should contain old text and appended text") {
-                                        callPage1.text.shouldHave(exactValue(text1 + text2))
+                                        collaborationPage1.text.shouldHave(exactValue(text1 + text2))
                                     }
                                 }
                             }

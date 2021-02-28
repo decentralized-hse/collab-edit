@@ -14,19 +14,27 @@ fun openClient(): LoginPage {
 
 class LoginPage(val driver: SelenideDriver) {
 
-    fun loginAs(userName: String): CallPage {
+    fun loginAs(userName: String): ConnectionPage {
         driver.`$`("#usernameInput").sendKeys(userName)
         driver.`$`("#loginBtn").click()
-        return driver.page(CallPage(driver, userName))
+        return driver.page(ConnectionPage(driver, userName))
     }
 }
 
-class CallPage(val driver: SelenideDriver, val userName: String) {
+class ConnectionPage(val driver: SelenideDriver, val userName: String) {
 
-    fun call(userName: String) {
-        driver.`$`("#callToUsernameInput").sendKeys(userName)
-        driver.`$`("#callBtn").click()
+    fun connect(otherUserName: String): CollaborationPage {
+        driver.`$`("#connectToUsernameInput").sendKeys(otherUserName)
+        driver.`$`("#connectBtn").click()
+        return CollaborationPage(driver, userName = userName, otherUserName = otherUserName)
     }
+
+    fun asConnectedTo(otherUserName: String): CollaborationPage {
+        return CollaborationPage(driver, userName = userName, otherUserName = otherUserName)
+    }
+}
+
+class CollaborationPage(val driver: SelenideDriver, val userName: String, val otherUserName: String) {
 
     fun input(message: String) {
         driver.`$`("#text").sendKeys(message)
