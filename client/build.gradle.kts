@@ -13,14 +13,18 @@ val webrtcAdapterVersion: String by project
 val kotlinExtensionsVersion: String by project
 val bootstrapVersion: String by project
 val kotlinReactVersion: String by project
+val kotlinStyledVersion: String by project
+val reactBootstrapVersion: String by project
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinxHtmlVersion")
     implementation("org.jetbrains:kotlin-extensions:$kotlinExtensionsVersion")
     implementation("org.jetbrains:kotlin-react:$kotlinReactVersion")
     implementation("org.jetbrains:kotlin-react-dom:$kotlinReactVersion")
+    implementation("org.jetbrains:kotlin-styled:$kotlinStyledVersion")
     implementation(npm("webrtc-adapter", webrtcAdapterVersion))
     implementation(npm("bootstrap", bootstrapVersion))
+    implementation(npm("react-bootstrap", reactBootstrapVersion))
     implementation(project(":protocol-signal"))
 }
 

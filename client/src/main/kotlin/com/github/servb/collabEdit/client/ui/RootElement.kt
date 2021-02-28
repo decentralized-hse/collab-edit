@@ -4,6 +4,9 @@ import com.github.servb.collabEdit.client.AppState
 import com.github.servb.collabEdit.client.CallPage
 import com.github.servb.collabEdit.client.LoginPage
 import com.github.servb.collabEdit.client.NotConnectedPage
+import com.github.servb.collabEdit.client.ui.page.callPage
+import com.github.servb.collabEdit.client.ui.page.loginPage
+import com.github.servb.collabEdit.client.ui.page.notConnectedPage
 import react.*
 
 external interface RootElementProps : RProps {
@@ -12,9 +15,9 @@ external interface RootElementProps : RProps {
 }
 
 val rootElement = functionalComponent<RootElementProps> { props ->
-
     when (val appState = props.appState) {
         NotConnectedPage -> {
+            notConnectedPage()
         }
         is LoginPage -> {
             loginPage {
