@@ -1,6 +1,8 @@
 package com.github.servb.collabEdit.client
 
+import com.github.servb.collabEdit.client.externalDeclaration.diffMatchPatch.DiffMatchPatch
 import com.github.servb.collabEdit.client.ui.rootElement
+import com.github.servb.collabEdit.client.wrappers.diffMatchPatch.toTextAndResults
 import com.github.servb.collabEdit.protocol.signal.CandidateDescription
 import com.github.servb.collabEdit.protocol.signal.SessionDescription
 import com.github.servb.collabEdit.protocol.signal.ToClientMessage
@@ -62,6 +64,9 @@ fun onDisconnect() {
     handleLeave()
 }
 
+val dmp = DiffMatchPatch()
+var previousText: String = ""
+
 fun onTextChange(text: String) {
     render(
         CollaborationPage(
@@ -72,7 +77,11 @@ fun onTextChange(text: String) {
             onTextChange = ::onTextChange,
         )
     )
-    dataChannel.send(text)
+    val diffs = dmp.diff_main(previousText, text)
+    val patches = dmp.patch_make(previousText, diffs)
+    val textPatches = dmp.patch_toText(patches)
+    dataChannel.send(textPatches)
+    previousText = text
 }
 
 fun main() {
@@ -160,11 +169,15 @@ fun handleLogin(success: Boolean) {
         }
 
         dataChannel.onmessage = {
+            val textPatches = it.data as String
+            val patches = dmp.patch_fromText(textPatches)
+            val (newText) = dmp.patch_apply(patches, previousText).toTextAndResults()
+            previousText = newText
             render(
                 CollaborationPage(
                     userName = name!!,
                     otherUserName = connectedUser!!,
-                    text = it.data as String,
+                    text = newText,
                     onDisconnect = ::onDisconnect,
                     onTextChange = ::onTextChange,
                 )

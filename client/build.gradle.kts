@@ -15,6 +15,7 @@ val bootstrapVersion: String by project
 val kotlinReactVersion: String by project
 val kotlinStyledVersion: String by project
 val reactBootstrapVersion: String by project
+val dmpVersion: String by project
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinxHtmlVersion")
@@ -25,6 +26,7 @@ dependencies {
     implementation(npm("webrtc-adapter", webrtcAdapterVersion))
     implementation(npm("bootstrap", bootstrapVersion))
     implementation(npm("react-bootstrap", reactBootstrapVersion))
+    implementation(npm("diff-match-patch", dmpVersion))
     implementation(project(":protocol-signal"))
 }
 
