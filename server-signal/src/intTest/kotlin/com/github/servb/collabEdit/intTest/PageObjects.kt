@@ -1,5 +1,6 @@
 package com.github.servb.collabEdit.intTest
 
+import com.codeborne.selenide.Condition.exist
 import com.codeborne.selenide.SelenideDriver
 import com.codeborne.selenide.SelenideElement
 import com.codeborne.selenide.impl.StaticConfig
@@ -29,7 +30,8 @@ class ConnectionPage(val driver: SelenideDriver, val userName: String) {
         return CollaborationPage(driver, userName = userName, otherUserName = otherUserName)
     }
 
-    fun asConnectedTo(otherUserName: String): CollaborationPage {
+    infix fun shouldBeConnectedTo(otherUserName: String): CollaborationPage {
+        driver.`$`("#text").should(exist)
         return CollaborationPage(driver, userName = userName, otherUserName = otherUserName)
     }
 }

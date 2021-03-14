@@ -63,7 +63,7 @@ class Test2Clients : BehaviorSpec({
 
                         and("I call the first tab from the second tab") {
                             val collaborationPage2 = connectionPage2.connect(connectionPage1.userName)
-                            val collaborationPage1 = connectionPage1.asConnectedTo(collaborationPage2.userName)
+                            val collaborationPage1 = connectionPage1 shouldBeConnectedTo collaborationPage2.userName
 
                             and("I input text from the second tab") {
                                 val text1 = "my message, ${System.currentTimeMillis()} ms"
@@ -96,7 +96,7 @@ class Test2Clients : BehaviorSpec({
 
                         and("I call the first tab from the second tab") {
                             val collaborationPage2 = connectionPage2.connect(connectionPage1.userName)
-                            val collaborationPage1 = connectionPage1.asConnectedTo(collaborationPage2.userName)
+                            val collaborationPage1 = connectionPage1 shouldBeConnectedTo collaborationPage2.userName
 
                             and("The signaling server stops") {
                                 server.stop()
@@ -134,7 +134,7 @@ class Test2Clients : BehaviorSpec({
 
                         and("I call the first tab from the second tab") {
                             val collaborationPage2 = connectionPage2.connect(connectionPage1.userName)
-                            val collaborationPage1 = connectionPage1.asConnectedTo(collaborationPage2.userName)
+                            val collaborationPage1 = connectionPage1 shouldBeConnectedTo collaborationPage2.userName
 
                             and("I input text from the second tab") {
                                 val text1 = "my message, ${System.currentTimeMillis()} ms"
@@ -180,7 +180,8 @@ class Test2Clients : BehaviorSpec({
                                 and("I call the first tab from the second tab") {
                                     @Suppress("NAME_SHADOWING")
                                     val collaborationPage2 = connectionPage2.connect(connectionPage1.userName)
-                                    val collaborationPage1 = connectionPage1.asConnectedTo(collaborationPage2.userName)
+                                    val collaborationPage1 =
+                                        connectionPage1 shouldBeConnectedTo collaborationPage2.userName
 
                                     and("I input text from the second tab") {
                                         val text1 = "my message, ${System.currentTimeMillis()} ms"
