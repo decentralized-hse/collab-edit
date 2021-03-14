@@ -186,12 +186,7 @@ fun handleLogin(success: Boolean) {
 
         dataChannel.onclose = {
             console.log("data channel is closed")
-            render(
-                ConnectionPage(
-                    userName = name!!,
-                    onConnect = ::onConnect,
-                )
-            )
+            handleLogin(success = true)
         }
     }
 }

@@ -40,5 +40,10 @@ class CollaborationPage(val driver: SelenideDriver, val userName: String, val ot
         driver.`$`("#text").sendKeys(message)
     }
 
+    fun disconnect(): ConnectionPage {
+        driver.`$`("#disconnectBtn").click()
+        return ConnectionPage(driver, userName)
+    }
+
     val text: SelenideElement get() = driver.`$`("#text")
 }

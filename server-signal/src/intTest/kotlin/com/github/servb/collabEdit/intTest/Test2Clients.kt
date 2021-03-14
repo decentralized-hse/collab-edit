@@ -161,4 +161,46 @@ class Test2Clients : BehaviorSpec({
             }
         }
     }
+
+    givenSignalingServer {
+        andClientTab { loginPage1 ->
+            andClientTab { loginPage2 ->
+                `when`("I login to the first tab") {
+                    val connectionPage1 = loginPage1.loginAs("user1")
+
+                    and("I login to the second tab") {
+                        val connectionPage2 = loginPage2.loginAs("user2")
+
+                        and("I call the first tab from the second tab") {
+                            val collaborationPage2 = connectionPage2.connect(connectionPage1.userName)
+
+                            and("I disconnect on the second tab") {
+                                collaborationPage2.disconnect()
+
+                                and("I call the first tab from the second tab") {
+                                    @Suppress("NAME_SHADOWING")
+                                    val collaborationPage2 = connectionPage2.connect(connectionPage1.userName)
+                                    val collaborationPage1 = connectionPage1.asConnectedTo(collaborationPage2.userName)
+
+                                    and("I input text from the second tab") {
+                                        val text1 = "my message, ${System.currentTimeMillis()} ms"
+
+                                        collaborationPage2.input(text1)
+
+                                        then("chat in the second tab should contain text") {
+                                            collaborationPage2.text.shouldHave(exactValue(text1))
+                                        }
+
+                                        then("chat in the first tab should contain text") {
+                                            collaborationPage1.text.shouldHave(exactValue(text1))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 })
