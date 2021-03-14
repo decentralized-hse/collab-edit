@@ -1,5 +1,6 @@
 package com.github.servb.collabEdit.intTest
 
+import io.ktor.server.engine.ApplicationEngine
 import java.io.File
 
 object ConnectionUtil {
@@ -8,3 +9,5 @@ object ConnectionUtil {
 
     val clientUrl = "file://${clientFile.absolutePath}"
 }
+
+fun ApplicationEngine.stop() = stop(500, 1500)
