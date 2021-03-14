@@ -8,8 +8,10 @@ import io.kotest.core.spec.style.scopes.GivenScope
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 
+private var givenSignalingServerNextId = 0
+
 fun BehaviorSpecRootScope.givenSignalingServer(test: suspend GivenScope.() -> Unit) {
-    given("signaling server") {
+    given("signaling server (${givenSignalingServerNextId++})") {
         val signalServer = embeddedServer(Netty, port = 9090) { module(testing = true) }
         signalServer.start()
 
@@ -43,6 +45,16 @@ class Test2Clients : BehaviorSpec({
                             loginPage2.driver.switchTo().alert().accept()
                         }
                     }
+                }
+            }
+        }
+    }
+
+    givenSignalingServer {
+        andClientTab { loginPage1 ->
+            andClientTab { loginPage2 ->
+                `when`("I login to the first tab") {
+                    val connectionPage1 = loginPage1.loginAs("user1")
 
                     and("I login to the second tab") {
                         val connectionPage2 = loginPage2.loginAs("user2")
@@ -63,6 +75,31 @@ class Test2Clients : BehaviorSpec({
                                 then("chat in the first tab should contain text") {
                                     collaborationPage1.text.shouldHave(exactValue(text1))
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    givenSignalingServer {
+        andClientTab { loginPage1 ->
+            andClientTab { loginPage2 ->
+                `when`("I login to the first tab") {
+                    val connectionPage1 = loginPage1.loginAs("user1")
+
+                    and("I login to the second tab") {
+                        val connectionPage2 = loginPage2.loginAs("user2")
+
+                        and("I call the first tab from the second tab") {
+                            val collaborationPage2 = connectionPage2.connect(connectionPage1.userName)
+                            val collaborationPage1 = connectionPage1.asConnectedTo(collaborationPage2.userName)
+
+                            and("I input text from the second tab") {
+                                val text1 = "my message, ${System.currentTimeMillis()} ms"
+
+                                collaborationPage2.input(text1)
 
                                 and("I add text from the first tab") {
                                     val text2 = "\nmy message 2, ${System.currentTimeMillis()} ms"
