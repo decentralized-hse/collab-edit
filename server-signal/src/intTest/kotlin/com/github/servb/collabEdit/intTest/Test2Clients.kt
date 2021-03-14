@@ -34,6 +34,7 @@ suspend fun GivenScope.andClientTab(test: suspend GivenScope.(LoginPage) -> Unit
 }
 
 class Test2Clients : BehaviorSpec({
+    // test logging in with the same name
     givenSignalingServer {
         andClientTab { loginPage1 ->
             andClientTab { loginPage2 ->
@@ -52,6 +53,7 @@ class Test2Clients : BehaviorSpec({
         }
     }
 
+    // test text sending
     givenSignalingServer {
         andClientTab { loginPage1 ->
             andClientTab { loginPage2 ->
@@ -85,6 +87,7 @@ class Test2Clients : BehaviorSpec({
         }
     }
 
+    // test text sending with stopped signaling server
     givenSignalingServer { server ->
         andClientTab { loginPage1 ->
             andClientTab { loginPage2 ->
@@ -123,6 +126,7 @@ class Test2Clients : BehaviorSpec({
         }
     }
 
+    // test text addition from both tabs
     givenSignalingServer {
         andClientTab { loginPage1 ->
             andClientTab { loginPage2 ->
@@ -162,6 +166,7 @@ class Test2Clients : BehaviorSpec({
         }
     }
 
+    // test reconnection
     givenSignalingServer {
         andClientTab { loginPage1 ->
             andClientTab { loginPage2 ->
