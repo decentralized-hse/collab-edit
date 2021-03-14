@@ -9,6 +9,7 @@ import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import kotlinx.coroutines.delay
+import org.openqa.selenium.Keys
 
 private var givenSignalingServerNextId = 0
 
@@ -77,7 +78,7 @@ class Test2Clients : BehaviorSpec({
                                 }
 
                                 then("chat in the first tab should contain text") {
-                                    collaborationPage1.text.shouldHave(exactValue(text1))
+                                    collaborationPage1.text.shouldHave(exactValue("$text1|"))
                                 }
                             }
                         }
@@ -115,7 +116,7 @@ class Test2Clients : BehaviorSpec({
                                     }
 
                                     then("chat in the first tab should contain text") {
-                                        collaborationPage1.text.shouldHave(exactValue(text1))
+                                        collaborationPage1.text.shouldHave(exactValue("$text1|"))
                                     }
                                 }
                             }
@@ -151,11 +152,11 @@ class Test2Clients : BehaviorSpec({
                                     collaborationPage1.input(text2)
 
                                     then("chat in the second tab should contain old text and appended text") {
-                                        collaborationPage2.text.shouldHave(exactValue(text1 + text2))
+                                        collaborationPage2.text.shouldHave(exactValue("$text1$text2|"))
                                     }
 
                                     then("chat in the first tab should contain old text and appended text") {
-                                        collaborationPage1.text.shouldHave(exactValue(text1 + text2))
+                                        collaborationPage1.text.shouldHave(exactValue("$text1|$text2"))
                                     }
                                 }
                             }
@@ -198,7 +199,101 @@ class Test2Clients : BehaviorSpec({
                                         }
 
                                         then("chat in the first tab should contain text") {
-                                            collaborationPage1.text.shouldHave(exactValue(text1))
+                                            collaborationPage1.text.shouldHave(exactValue("$text1|"))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // test text cursor moving on one side seen from other side
+    givenSignalingServer {
+        andClientTab { loginPage1 ->
+            andClientTab { loginPage2 ->
+                `when`("I login to the first tab") {
+                    val connectionPage1 = loginPage1.loginAs("user1")
+
+                    and("I login to the second tab") {
+                        val connectionPage2 = loginPage2.loginAs("user2")
+
+                        and("I call the first tab from the second tab") {
+                            val collaborationPage2 = connectionPage2.connect(connectionPage1.userName)
+                            val collaborationPage1 = connectionPage1 shouldBeConnectedTo collaborationPage2.userName
+
+                            and("I input text from the second tab") {
+                                val text1 = "my message, ${System.currentTimeMillis()} ms"
+
+                                collaborationPage2.input(text1)
+
+                                and("I place cursor to the start of textarea") {
+                                    collaborationPage2.input(Keys.PAGE_UP)
+
+                                    then("chat in the second tab should contain correct text") {
+                                        collaborationPage2.text.shouldHave(exactValue(text1))
+                                    }
+
+                                    then("chat in the first tab should contain correct text") {
+                                        collaborationPage1.text.shouldHave(exactValue("|$text1"))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // test text addition from both tabs with cursor sync
+    givenSignalingServer {
+        andClientTab { loginPage1 ->
+            andClientTab { loginPage2 ->
+                `when`("I login to the first tab") {
+                    val connectionPage1 = loginPage1.loginAs("user1")
+
+                    and("I login to the second tab") {
+                        val connectionPage2 = loginPage2.loginAs("user2")
+
+                        and("I call the first tab from the second tab") {
+                            val collaborationPage2 = connectionPage2.connect(connectionPage1.userName)
+                            val collaborationPage1 = connectionPage1 shouldBeConnectedTo collaborationPage2.userName
+
+                            and("I input text from the second tab") {
+                                val text1 = "my message, ${System.currentTimeMillis()} ms"
+
+                                collaborationPage2.input(text1)
+
+                                delay(1000)  // todo: try to remove delays here after dealing with rebases
+
+                                and("I place cursor to the start of textarea") {
+                                    collaborationPage2.input(Keys.PAGE_UP)
+
+                                    and("I add text from the first tab") {
+                                        val text2 = "\nmy message 2, ${System.currentTimeMillis()} ms"
+
+                                        delay(1000)  // todo: try to remove delays here after dealing with rebases
+
+                                        collaborationPage1.input(text2)
+
+                                        and("I input text from the second tab") {
+                                            val text3 = "my message 3, ${System.currentTimeMillis()} ms"
+
+                                            delay(1000)  // todo: try to remove delays here after dealing with rebases
+
+                                            collaborationPage2.input(text3)
+
+                                            then("chat in the second tab should contain correct text") {
+                                                collaborationPage2.text.shouldHave(exactValue("$text3$text1$text2|"))
+                                            }
+
+                                            then("chat in the first tab should contain correct text") {
+                                                collaborationPage1.text.shouldHave(exactValue("$text3|$text1$text2"))
+                                            }
                                         }
                                     }
                                 }

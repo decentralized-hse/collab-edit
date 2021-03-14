@@ -1,16 +1,17 @@
 package com.github.servb.collabEdit.client.ui.page
 
 import com.github.servb.collabEdit.client.CollaborationPage
+import com.github.servb.collabEdit.client.ShownTextRepresentation
 import kotlinx.css.*
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
+import kotlinx.html.js.onSelectFunction
 import org.w3c.dom.HTMLTextAreaElement
 import react.*
 import react.dom.div
 import react.dom.h2
 import react.dom.strong
-import react.dom.value
 import styled.css
 import styled.styledButton
 import styled.styledDiv
@@ -75,14 +76,28 @@ val collaborationPage = functionalComponent<CollaborationPageProps> { props ->
                 marginTop = 10.px
             }
 
+            fun updateText(element: HTMLTextAreaElement) {
+                props.appState.onTextChange(ShownTextRepresentation(element.selectionStart, element.value))
+            }
+
             attrs {
                 id = "text"
                 placeholder = "Collaborate here!"
-                onChangeFunction = {
-                    val text = (it.target as HTMLTextAreaElement).value
-                    props.appState.onTextChange(text)
+                onSelectFunction = {
+                    updateText(it.target as HTMLTextAreaElement)
                 }
-                value = props.appState.text
+                onChangeFunction = {
+                    updateText(it.target as HTMLTextAreaElement)
+                }
+
+                val textAreaRef = useRef<HTMLTextAreaElement?>(null)
+                ref = textAreaRef
+
+                useEffect {
+                    textAreaRef.current?.value = props.appState.text.shownText
+                    textAreaRef.current?.selectionStart = props.appState.text.myCursorPosition
+                    textAreaRef.current?.selectionEnd = props.appState.text.myCursorPosition
+                }
             }
         }
     }

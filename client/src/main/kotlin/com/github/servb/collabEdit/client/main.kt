@@ -67,7 +67,7 @@ fun onDisconnect() {
 val dmp = DiffMatchPatch()
 var previousText: String = ""
 
-fun onTextChange(text: String) {
+fun onTextChange(text: ShownTextRepresentation) {
     render(
         CollaborationPage(
             userName = name!!,
@@ -77,11 +77,12 @@ fun onTextChange(text: String) {
             onTextChange = ::onTextChange,
         )
     )
-    val diffs = dmp.diff_main(previousText, text)
+    val sentText = text.toSent(name!!, connectedUser!!).sentText
+    val diffs = dmp.diff_main(previousText, sentText)
     val patches = dmp.patch_make(previousText, diffs)
     val textPatches = dmp.patch_toText(patches)
     dataChannel.send(textPatches)
-    previousText = text
+    previousText = sentText
 }
 
 fun main() {
@@ -157,7 +158,7 @@ fun handleLogin(success: Boolean) {
                 CollaborationPage(
                     userName = name!!,
                     otherUserName = connectedUser!!,
-                    text = "",
+                    text = ShownTextRepresentation(null, ""),
                     onDisconnect = ::onDisconnect,
                     onTextChange = ::onTextChange,
                 )
@@ -173,11 +174,14 @@ fun handleLogin(success: Boolean) {
             val patches = dmp.patch_fromText(textPatches)
             val (newText) = dmp.patch_apply(patches, previousText).toTextAndResults()
             previousText = newText
+
+            val shownText = SentTextRepresentation(newText).toShown(name!!, connectedUser!!)
+
             render(
                 CollaborationPage(
                     userName = name!!,
                     otherUserName = connectedUser!!,
-                    text = newText,
+                    text = shownText,
                     onDisconnect = ::onDisconnect,
                     onTextChange = ::onTextChange,
                 )

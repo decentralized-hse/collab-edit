@@ -38,7 +38,7 @@ class ConnectionPage(val driver: SelenideDriver, val userName: String) {
 
 class CollaborationPage(val driver: SelenideDriver, val userName: String, val otherUserName: String) {
 
-    fun input(message: String) {
+    fun input(message: CharSequence) {
         driver.`$`("#text").sendKeys(message)
     }
 

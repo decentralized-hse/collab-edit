@@ -14,7 +14,7 @@ data class ConnectionPage(
 data class CollaborationPage(
     val userName: String,
     val otherUserName: String,
-    val text: String,
+    val text: ShownTextRepresentation,
     val onDisconnect: () -> Unit,
-    val onTextChange: (newText: String) -> Unit,
+    val onTextChange: (newText: ShownTextRepresentation) -> Unit,
 ) : AppState()
