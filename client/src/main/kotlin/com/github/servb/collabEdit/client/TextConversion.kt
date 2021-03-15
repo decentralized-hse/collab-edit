@@ -12,7 +12,7 @@ private fun String.indexOfOrNull(substring: String): Int? = this.indexOf(substri
  *
  *     "text|myName|texttext|otherName|"
  *
- *     "|myName|" and "|otherName|" are cursor positions
+ * "|myName|" and "|otherName|" are cursor positions
  */
 class SentTextRepresentation(val sentText: String) {
 
