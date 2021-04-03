@@ -11,6 +11,7 @@ pluginManagement {
 
 rootProject.name = "collab-edit"
 
+include("chronofold")
 include("client")
 include("protocol-signal")
 include("server-signal")
