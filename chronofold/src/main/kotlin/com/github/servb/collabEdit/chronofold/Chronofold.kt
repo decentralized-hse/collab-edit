@@ -1,9 +1,13 @@
 package com.github.servb.collabEdit.chronofold
 
+data class Timestamp(
+    val author: String,
+    val authorIndex: Int,
+)
+
 data class Node(
     val value: Value,
-    val auth: String,
-    val andx: Int,
+    val timestamp: Timestamp,
     val next: Next,
 )
 
@@ -23,7 +27,7 @@ sealed class Next {
 
     object Increment1 : Next()
 
-    data class Index(val auth: String, val andx: Int) : Next()
+    data class Index(val timestamp: Timestamp) : Next()
 
     object End : Next()
 }
@@ -34,7 +38,7 @@ class Chronofold private constructor(private val log: List<Node>) {
 
     private fun getIdByIndex(index: Next.Index): Int {
         // todo: get rid of linear search
-        val result = log.indexOfFirst { it.andx == index.andx && it.auth == index.auth }
+        val result = log.indexOfFirst { it.timestamp == index.timestamp }
         check(result in log.indices) { "bad result ($result) for $index" }
         return result
     }
