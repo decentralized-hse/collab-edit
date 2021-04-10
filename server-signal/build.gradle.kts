@@ -48,7 +48,7 @@ val integrationTest = task<Test>("integrationTest") {
 //tasks.check { dependsOn(integrationTest) }
 
 dependencies {
-    implementation(project(":protocol-signal"))
+    implementation(projects.protocolSignal)
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")

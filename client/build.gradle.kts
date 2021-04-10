@@ -27,7 +27,7 @@ dependencies {
     implementation(npm("bootstrap", bootstrapVersion))
     implementation(npm("react-bootstrap", reactBootstrapVersion))
     implementation(npm("diff-match-patch", dmpVersion))
-    implementation(project(":protocol-signal"))
+    implementation(projects.protocolSignal)
 }
 
 kotlin {
