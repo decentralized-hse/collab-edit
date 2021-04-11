@@ -2,9 +2,6 @@ plugins {
     kotlin("multiplatform")
 }
 
-val kotestVersion: String by project
-val kotlinVersion: String by project
-
 kotlin {
     js(IR) {
         browser()
@@ -13,15 +10,15 @@ kotlin {
     sourceSets {
         getByName("commonTest") {
             dependencies {
-                implementation("io.kotest:kotest-assertions-core:$kotestVersion")
-                implementation(kotlin("test-common", kotlinVersion))
-                implementation(kotlin("test-annotations-common", kotlinVersion))
+                implementation(libs.kotest.assertions.core)
+                implementation(libs.kotlin.test.common)
+                implementation(libs.kotlin.test.annotations.common)
             }
         }
 
         getByName("jsTest") {
             dependencies {
-                implementation(kotlin("test-js", kotlinVersion))
+                implementation(libs.kotlin.test.js)
             }
         }
     }

@@ -1,10 +1,3 @@
-val ktorVersion: String by project
-val kotlinVersion: String by project
-val logbackVersion: String by project
-val selenideVersion: String by project
-val coroutinesVersion: String by project
-val kotestVersion: String by project
-
 plugins {
     application
     kotlin("jvm")
@@ -49,16 +42,13 @@ val integrationTest = task<Test>("integrationTest") {
 
 dependencies {
     implementation(projects.protocolSignal)
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("ch.qos.logback:logback-classic:$logbackVersion")
-    implementation("io.ktor:ktor-server-core:$ktorVersion")
-    implementation("io.ktor:ktor-server-host-common:$ktorVersion")
-    implementation("io.ktor:ktor-websockets:$ktorVersion")
-    testImplementation("io.ktor:ktor-server-tests:$ktorVersion")
+    implementation(libs.ktor.server.netty)
+    runtimeOnly(libs.logback.classic)
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.websockets)
 
-    intTestImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
-    intTestImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
-    intTestImplementation("com.codeborne:selenide:$selenideVersion")
-    intTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+    intTestImplementation(libs.kotest.runner.junit5)
+    intTestImplementation(libs.kotest.assertions.core)
+    intTestImplementation(libs.selenide)
+    intTestImplementation(libs.kotlinx.coroutines.core)
 }

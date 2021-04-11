@@ -3,8 +3,6 @@ plugins {
     kotlin("plugin.serialization")
 }
 
-val kxSerializationVersion: String by project
-
 kotlin {
     jvm()
     js(IR) {
@@ -14,7 +12,7 @@ kotlin {
     sourceSets {
         getByName("commonMain") {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kxSerializationVersion")
+                implementation(libs.kotlinx.serialization.json)
             }
         }
     }
