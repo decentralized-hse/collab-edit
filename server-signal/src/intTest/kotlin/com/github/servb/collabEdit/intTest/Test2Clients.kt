@@ -9,7 +9,9 @@ import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import kotlinx.coroutines.delay
+import org.openqa.selenium.Dimension
 import org.openqa.selenium.Keys
+import org.openqa.selenium.Point
 
 private var givenSignalingServerNextId = 0
 
@@ -24,9 +26,18 @@ fun BehaviorSpecRootScope.givenSignalingServer(test: suspend GivenScope.(server:
     }
 }
 
-suspend fun GivenScope.andClientTab(test: suspend GivenScope.(LoginPage) -> Unit) {
-    and("client tab") {
+enum class Tab(val posX: Int, val posY: Int) {
+
+    FIRST(100, 50),
+    SECOND(1000, 50),
+}
+
+suspend fun GivenScope.andClientTab(tab: Tab, test: suspend GivenScope.(LoginPage) -> Unit) {
+    and("client tab ($tab)") {
         val client = openClient()
+
+        client.driver.webDriver.manage().window().position = Point(tab.posX, tab.posY)
+        client.driver.webDriver.manage().window().size = Dimension(400, 400)
 
         test(client)
 
@@ -37,8 +48,8 @@ suspend fun GivenScope.andClientTab(test: suspend GivenScope.(LoginPage) -> Unit
 class Test2Clients : BehaviorSpec({
     // test logging in with the same name
     givenSignalingServer {
-        andClientTab { loginPage1 ->
-            andClientTab { loginPage2 ->
+        andClientTab(Tab.FIRST) { loginPage1 ->
+            andClientTab(Tab.SECOND) { loginPage2 ->
                 `when`("I login to the first tab") {
                     val connectionPage1 = loginPage1.loginAs("user1")
 
@@ -56,8 +67,8 @@ class Test2Clients : BehaviorSpec({
 
     // test text sending
     givenSignalingServer {
-        andClientTab { loginPage1 ->
-            andClientTab { loginPage2 ->
+        andClientTab(Tab.FIRST) { loginPage1 ->
+            andClientTab(Tab.SECOND) { loginPage2 ->
                 `when`("I login to the first tab") {
                     val connectionPage1 = loginPage1.loginAs("user1")
 
@@ -90,8 +101,8 @@ class Test2Clients : BehaviorSpec({
 
     // test text sending with stopped signaling server
     givenSignalingServer { server ->
-        andClientTab { loginPage1 ->
-            andClientTab { loginPage2 ->
+        andClientTab(Tab.FIRST) { loginPage1 ->
+            andClientTab(Tab.SECOND) { loginPage2 ->
                 `when`("I login to the first tab") {
                     val connectionPage1 = loginPage1.loginAs("user1")
 
@@ -129,8 +140,8 @@ class Test2Clients : BehaviorSpec({
 
     // test text addition from both tabs
     givenSignalingServer {
-        andClientTab { loginPage1 ->
-            andClientTab { loginPage2 ->
+        andClientTab(Tab.FIRST) { loginPage1 ->
+            andClientTab(Tab.SECOND) { loginPage2 ->
                 `when`("I login to the first tab") {
                     val connectionPage1 = loginPage1.loginAs("user1")
 
@@ -169,8 +180,8 @@ class Test2Clients : BehaviorSpec({
 
     // test reconnection
     givenSignalingServer {
-        andClientTab { loginPage1 ->
-            andClientTab { loginPage2 ->
+        andClientTab(Tab.FIRST) { loginPage1 ->
+            andClientTab(Tab.SECOND) { loginPage2 ->
                 `when`("I login to the first tab") {
                     val connectionPage1 = loginPage1.loginAs("user1")
 
@@ -213,8 +224,8 @@ class Test2Clients : BehaviorSpec({
 
     // test text cursor moving on one side seen from other side
     givenSignalingServer {
-        andClientTab { loginPage1 ->
-            andClientTab { loginPage2 ->
+        andClientTab(Tab.FIRST) { loginPage1 ->
+            andClientTab(Tab.SECOND) { loginPage2 ->
                 `when`("I login to the first tab") {
                     val connectionPage1 = loginPage1.loginAs("user1")
 
@@ -251,8 +262,8 @@ class Test2Clients : BehaviorSpec({
 
     // test text addition from both tabs with cursor sync
     givenSignalingServer {
-        andClientTab { loginPage1 ->
-            andClientTab { loginPage2 ->
+        andClientTab(Tab.FIRST) { loginPage1 ->
+            andClientTab(Tab.SECOND) { loginPage2 ->
                 `when`("I login to the first tab") {
                     val connectionPage1 = loginPage1.loginAs("user1")
 
