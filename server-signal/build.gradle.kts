@@ -26,10 +26,16 @@ val integrationTest = task<Test>("integrationTest") {
     description = "Runs integration tests."
     group = "verification"
 
+    doFirst {
+        File("build/reports/tests").mkdirs()  // Selenium doesn't create them itself
+    }
+
     testClassesDirs = sourceSets[intTestSourceSetName].output.classesDirs
     classpath = sourceSets[intTestSourceSetName].runtimeClasspath
 
-    systemProperties = System.getProperties().map { (k, v) -> k.toString() to v }.toMap()
+    systemProperties = System.getProperties().map { (k, v) -> k.toString() to v }.toMap() + mapOf(
+        "collab.edit.client.file" to project(":client").file("build/distributions/index.html").toString(),
+    )
 
     shouldRunAfter("test")
     dependsOn(":client:browserProductionWebpack")

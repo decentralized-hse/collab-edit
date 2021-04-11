@@ -1,13 +1,12 @@
 package com.github.servb.collabEdit.intTest
 
 import io.ktor.server.engine.ApplicationEngine
-import java.io.File
 
 object ConnectionUtil {
 
-    private val clientFile = File("client/build/distributions/index.html")
+    private val clientFile: String get() = System.getProperty("collab.edit.client.file")
 
-    val clientUrl = "file://${clientFile.absolutePath}"
+    val clientUrl = "file://$clientFile"
 }
 
 fun ApplicationEngine.stop() = stop(500, 1500)
