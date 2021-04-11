@@ -1,14 +1,8 @@
 package com.github.servb.collabEdit.chronofold
 
-data class Timestamp(
-    val author: String,
-    val authorIndex: Int,
-)
-
 data class Node(
     val value: Value,
-    val timestamp: Timestamp,
-    val next: Next,
+    var next: Next,
 )
 
 sealed class Value {
@@ -27,21 +21,14 @@ sealed class Next {
 
     object Increment1 : Next()
 
-    data class Index(val timestamp: Timestamp) : Next()
+    data class Index(val idx: Int) : Next()
 
     object End : Next()
 }
 
-class Chronofold private constructor(private val log: List<Node>) {
+class Chronofold private constructor(private val log: MutableList<Node>) {
 
-    constructor(vararg nodes: Node) : this(nodes.toList())
-
-    private fun getIdByIndex(index: Next.Index): Int {
-        // todo: get rid of linear search
-        val result = log.indexOfFirst { it.timestamp == index.timestamp }
-        check(result in log.indices) { "bad result ($result) for $index" }
-        return result
-    }
+    constructor(vararg nodes: Node) : this(nodes.toMutableList())
 
     fun getString(): String {
         val result = StringBuilder()
@@ -54,9 +41,9 @@ class Chronofold private constructor(private val log: List<Node>) {
                 is Value.Symbol -> result.append(currentNode.value.char)
                 is Value.Tombstone -> result.deleteAt(result.lastIndex)
             }
-            when (currentNode.next) {
+            when (val next = currentNode.next) {
                 is Next.Increment1 -> ++logIdx
-                is Next.Index -> logIdx = getIdByIndex(currentNode.next)
+                is Next.Index -> logIdx = next.idx
                 is Next.End -> break
             }
         }
