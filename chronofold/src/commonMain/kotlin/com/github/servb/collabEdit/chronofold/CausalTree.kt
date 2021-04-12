@@ -11,7 +11,7 @@ data class Operation(
     val value: Value,
 )
 
-class ReplicatedCausalTreeForSingleProcess private constructor(private val log: MutableList<Operation>) {
+class CausalTree private constructor(private val log: MutableList<Operation>) {
 
     constructor(vararg operations: Operation) : this(operations.toMutableList())
 

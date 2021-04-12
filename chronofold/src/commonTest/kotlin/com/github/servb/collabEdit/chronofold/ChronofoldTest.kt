@@ -136,7 +136,7 @@ class ChronofoldTest {
 
     @Test
     fun testFigure4aTo6b8Transition() {
-        val rct = ReplicatedCausalTreeForSingleProcess(
+        val ct = CausalTree(
             Operation(Timestamp("a", 0), Timestamp("a", 0), Value.Root),
             Operation(Timestamp("a", 1), Timestamp("a", 0), Value.Symbol('P')),
             Operation(Timestamp("a", 2), Timestamp("a", 1), Value.Symbol('I')),
@@ -156,15 +156,15 @@ class ChronofoldTest {
 
         val b6 = Operation(Timestamp("b", 6), Timestamp("a", 1), Value.Tombstone)
 
-        rct.add(b6)
-        chronofold.add(b6, rct)
+        ct.add(b6)
+        chronofold.add(b6, ct)
 
         chronofold.getString() shouldBe "INSK"
 
         val b7 = Operation(Timestamp("b", 7), Timestamp("b", 6), Value.Symbol('M'))
 
-        rct.add(b7)
-        chronofold.add(b7, rct)
+        ct.add(b7)
+        chronofold.add(b7, ct)
 
         chronofold.getString() shouldBe "MINSK"
     }

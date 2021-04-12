@@ -62,9 +62,9 @@ class Chronofold private constructor(private val log: MutableList<Node>) {
         return result.toString()
     }
 
-    fun add(operation: Operation, rct: ReplicatedCausalTreeForSingleProcess) {
+    fun add(operation: Operation, ct: CausalTree) {
         val ref = operation.ref
-        val j = rct.ndx(ref)
+        val j = ct.ndx(ref)
         check(ref.authorIndex < operation.timestamp.authorIndex) { "k < i is broken" }
         check(ref.authorIndex <= j) { "k <= j is broken" }
         val prev = log[j]
