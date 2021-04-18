@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
+
 plugins {
     application
     kotlin("jvm")
@@ -33,12 +35,14 @@ val integrationTest = task<Test>("integrationTest") {
     testClassesDirs = sourceSets[intTestSourceSetName].output.classesDirs
     classpath = sourceSets[intTestSourceSetName].runtimeClasspath
 
+    val webpackTask = project(":client").tasks.getByName<KotlinWebpack>("browserProductionWebpack")
+
     systemProperties = System.getProperties().map { (k, v) -> k.toString() to v }.toMap() + mapOf(
-        "collab.edit.client.file" to project(":client").file("build/distributions/index.html").toString(),
+        "collab.edit.client.file" to "${webpackTask.destinationDirectory.absolutePath}/index.html",
     )
 
-    shouldRunAfter("test")
-    dependsOn(":client:browserProductionWebpack")
+    shouldRunAfter(tasks.test)
+    dependsOn(webpackTask)
 
     useJUnitPlatform()
 }
