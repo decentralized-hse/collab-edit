@@ -135,7 +135,7 @@ class ChronofoldTest {
     }
 
     @Test
-    fun testFigure4aTo6b8Transition() {
+    fun testFigure4a6Tob8Transition() {
         val ct = CausalTree(
             Operation(Timestamp("a", 0), Timestamp("a", 0), Value.Root),
             Operation(Timestamp("a", 1), Timestamp("a", 0), Value.Symbol('P')),
@@ -170,7 +170,7 @@ class ChronofoldTest {
     }
 
     @Test
-    fun testFigure4a6b8c14Transition() {
+    fun testFigure4a6b8Toc14Transition() {
         val ct = CausalTree(
             Operation(Timestamp("a", 0), Timestamp("a", 0), Value.Root),
             Operation(Timestamp("a", 1), Timestamp("a", 0), Value.Symbol('P')),
