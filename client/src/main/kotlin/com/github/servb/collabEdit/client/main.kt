@@ -64,7 +64,7 @@ fun onDisconnect() {
     handleLeave()
 }
 
-val dmp = DiffMatchPatch()
+private val dmp = DiffMatchPatch()
 var previousText: String = ""
 
 fun onTextChange(text: ShownTextRepresentation) {

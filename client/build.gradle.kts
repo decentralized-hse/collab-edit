@@ -23,7 +23,11 @@ dependencies {
     implementation(npm("bootstrap", bootstrapVersion))
     implementation(npm("react-bootstrap", reactBootstrapVersion))
     implementation(npm("diff-match-patch", dmpVersion))
+    implementation(projects.chronofold)
     implementation(projects.protocolSignal)
+
+    testImplementation(libs.kotlin.test.js)
+    testImplementation(libs.kotest.assertions.core)
 }
 
 kotlin {

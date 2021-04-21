@@ -42,16 +42,15 @@ class Chronofold private constructor(private val log: MutableList<Node>) {
 
     constructor(vararg nodes: Node) : this(nodes.toMutableList())
 
-    fun getString(): String {
-        val result = StringBuilder()
+    private fun iterateByNext(onSymbol: (char: Char, logIdx: Int) -> Unit, onTombstone: () -> Unit) {
         var logIdx = 0
         while (true) {
             val currentNode = log[logIdx]
             when (currentNode.value) {
                 is Value.Root -> {
                 }
-                is Value.Symbol -> result.append(currentNode.value.char)
-                is Value.Tombstone -> result.deleteAt(result.lastIndex)
+                is Value.Symbol -> onSymbol(currentNode.value.char, logIdx)
+                is Value.Tombstone -> onTombstone()
             }
             when (val next = currentNode.next) {
                 is Next.Increment1 -> ++logIdx
@@ -59,7 +58,24 @@ class Chronofold private constructor(private val log: MutableList<Node>) {
                 is Next.End -> break
             }
         }
+    }
+
+    fun getString(): String {
+        val result = StringBuilder()
+        iterateByNext(
+            onSymbol = { char, _ -> result.append(char) },
+            onTombstone = { result.deleteAt(result.lastIndex) }
+        )
         return result.toString()
+    }
+
+    fun getTimestamps(ct: CausalTree): List<Timestamp> {
+        val result = mutableListOf<Timestamp>()
+        iterateByNext(
+            onSymbol = { _, logIdx -> result.add(ct.ndxInv(logIdx)) },
+            onTombstone = { result.removeLast() }
+        )
+        return result
     }
 
     fun add(operation: Operation, ct: CausalTree) {
@@ -73,19 +89,23 @@ class Chronofold private constructor(private val log: MutableList<Node>) {
         log.add(Node(operation.value, next))
         prev.next = normalizeNext(j, addedIndex)
     }
-}
 
-fun calculateNext(prevIndex: Int, prevNext: Next, addedIndex: Int): Next {
-    val targetIndex = when (prevNext) {
-        is Next.Increment1 -> prevIndex + 1
-        is Next.Index -> prevNext.idx
-        is Next.End -> return prevNext
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as Chronofold
+
+        if (log != other.log) return false
+
+        return true
     }
 
-    return normalizeNext(addedIndex, targetIndex)
-}
+    override fun hashCode(): Int {
+        return log.hashCode()
+    }
 
-fun normalizeNext(sourceIndex: Int, destinationIndex: Int): Next = when (destinationIndex - sourceIndex) {
-    1 -> Next.Increment1
-    else -> Next.Index(destinationIndex)
+    override fun toString(): String {
+        return "Chronofold(${log.joinToString("\n", "\n", "\n")})"
+    }
 }
