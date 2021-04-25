@@ -82,4 +82,23 @@ class DiffTest {
 
         chronofold.getString() shouldBe text2
     }
+
+    @Test
+    fun testInsertMultipleSymbols() {
+        val authorName = "myName"
+        val text1 = "abc|$authorName|123"
+        val text2 = "abcABC|$authorName|123"
+        val (ct, chronofold) = createInitialData(text1, authorName)
+
+        val ops = diff(text2, chronofold, ct, authorName)
+
+        ops shouldHaveSize 3
+
+        ops.forEach {
+            ct.add(it)
+            chronofold.add(it, ct)
+        }
+
+        chronofold.getString() shouldBe text2
+    }
 }

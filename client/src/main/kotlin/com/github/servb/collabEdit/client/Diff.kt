@@ -21,13 +21,16 @@ fun diff(newText: String, chronofold: Chronofold, ct: CausalTree, author: String
         when (op) {
             0 -> curIdx += value.length
             1 -> {
-                val c = value.single()  // todo: support multiple sequential symbols
-                val ts = Timestamp(author, ct.size + result.size)
-                val ref = when (curIdx) {
+                var ts = Timestamp(author, ct.size + result.size)
+                var ref = when (curIdx) {
                     0 -> ct.ndxInv(0)
                     else -> textTimestamps[curIdx - 1]
                 }
-                result.add(Operation(ts, ref, Value.Symbol(c)))
+                value.forEach { c ->
+                    result.add(Operation(ts, ref, Value.Symbol(c)))
+                    ref = ts
+                    ts = Timestamp(author, ct.size + result.size)
+                }
             }
             -1 -> {
                 require(value.length == 1)  // todo: support multiple sequential symbols
