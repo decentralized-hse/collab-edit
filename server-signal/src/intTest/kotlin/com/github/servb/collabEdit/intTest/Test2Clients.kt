@@ -1,6 +1,7 @@
 package com.github.servb.collabEdit.intTest
 
 import com.codeborne.selenide.Condition.exactValue
+import com.codeborne.selenide.SelenideDriver
 import com.github.servb.collabEdit.server.signal.module
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.core.spec.style.scopes.BehaviorSpecRootScope
@@ -32,16 +33,24 @@ enum class Tab(val posX: Int, val posY: Int) {
     SECOND(1000, 50),
 }
 
+private val tabs = mutableMapOf<Tab, SelenideDriver>()
+
 suspend fun GivenScope.andClientTab(tab: Tab, test: suspend GivenScope.(LoginPage) -> Unit) {
     and("client tab ($tab)") {
-        val client = openClient()
+        val driver = tabs.getOrPut(tab) {
+            createDriver().also {
+                it.open("about:blank")  // open before changing window to avoid exceptions
+                it.webDriver.manage().window().apply {
+                    position = Point(tab.posX, tab.posY)
+                    size = Dimension(400, 400)
+                }
+            }
+        }
 
-        client.driver.webDriver.manage().window().position = Point(tab.posX, tab.posY)
-        client.driver.webDriver.manage().window().size = Dimension(400, 400)
-
+        val client = openClient(driver)
         test(client)
 
-        client.driver.close()
+        driver.open("about:blank")
     }
 }
 

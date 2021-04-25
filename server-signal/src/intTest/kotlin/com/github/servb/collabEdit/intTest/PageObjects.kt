@@ -7,8 +7,9 @@ import com.codeborne.selenide.impl.StaticConfig
 
 private val config by lazy { StaticConfig() }
 
-fun openClient(): LoginPage {
-    val driver = SelenideDriver(config)
+fun createDriver(): SelenideDriver = SelenideDriver(config)
+
+fun openClient(driver: SelenideDriver): LoginPage {
     driver.open(ConnectionUtil.clientUrl)
     return driver.page(LoginPage(driver))
 }
