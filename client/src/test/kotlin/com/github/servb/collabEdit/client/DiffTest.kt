@@ -27,6 +27,44 @@ class DiffTest {
     }
 
     @Test
+    fun testInsertOneSymbolToStart() {
+        val authorName = "myName"
+        val text1 = "abc|$authorName|123"
+        val text2 = "iabc|$authorName|123"
+        val (ct, chronofold) = createInitialData(text1, authorName)
+
+        val ops = diff(text2, chronofold, ct, authorName)
+
+        ops shouldHaveSize 1
+
+        ops.forEach {
+            ct.add(it)
+            chronofold.add(it, ct)
+        }
+
+        chronofold.getString() shouldBe text2
+    }
+
+    @Test
+    fun testInsertOneSymbolToEmpty() {
+        val authorName = "myName"
+        val text1 = ""
+        val text2 = "_"
+        val (ct, chronofold) = createInitialData(text1, authorName)
+
+        val ops = diff(text2, chronofold, ct, authorName)
+
+        ops shouldHaveSize 1
+
+        ops.forEach {
+            ct.add(it)
+            chronofold.add(it, ct)
+        }
+
+        chronofold.getString() shouldBe text2
+    }
+
+    @Test
     fun testRemoveOneSymbol() {
         val authorName = "myName"
         val text1 = "abc|$authorName|123"

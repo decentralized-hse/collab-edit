@@ -23,7 +23,10 @@ fun diff(newText: String, chronofold: Chronofold, ct: CausalTree, author: String
             1 -> {
                 val c = value.single()  // todo: support multiple sequential symbols
                 val ts = Timestamp(author, ct.size + result.size)
-                val ref = textTimestamps[curIdx - 1]  // todo: insertion to the start
+                val ref = when (curIdx) {
+                    0 -> ct.ndxInv(0)
+                    else -> textTimestamps[curIdx - 1]
+                }
                 result.add(Operation(ts, ref, Value.Symbol(c)))
             }
             -1 -> {
