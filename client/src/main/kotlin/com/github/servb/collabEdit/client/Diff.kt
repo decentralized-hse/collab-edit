@@ -33,10 +33,13 @@ fun diff(newText: String, chronofold: Chronofold, ct: CausalTree, author: String
                 }
             }
             -1 -> {
-                require(value.length == 1)  // todo: support multiple sequential symbols
-                val ts = Timestamp(author, ct.size + result.size)
-                val ref = textTimestamps[curIdx]
-                result.add(Operation(ts, ref, Value.Tombstone))
+                var ts = Timestamp(author, ct.size + result.size)
+                var ref = textTimestamps[curIdx + value.length - 1]
+                repeat(value.length) {
+                    result.add(Operation(ts, ref, Value.Tombstone))
+                    ref = ts
+                    ts = Timestamp(author, ct.size + result.size)
+                }
             }
         }
     }
