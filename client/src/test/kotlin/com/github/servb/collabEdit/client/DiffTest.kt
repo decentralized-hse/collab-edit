@@ -11,17 +11,24 @@ class DiffTest {
     private fun diffTest(text1: String, text2: String, expectedOpsSize: Int? = null, authorName: String = "myName") {
         fun String.expandCaret() = replace("|", "|$authorName|")
 
-        val initialText = text1.expandCaret()
-        val expectedText = text2.expandCaret()
-        val (ct, chronofold) = createInitialData(initialText, authorName)
+        diffTestExact(text1.expandCaret(), text2.expandCaret(), expectedOpsSize, authorName)
+    }
 
-        val ops = diff(expectedText, chronofold, ct, authorName)
+    private fun diffTestExact(
+        exactText1: String,
+        exactText2: String,
+        expectedOpsSize: Int? = null,
+        authorName: String
+    ) {
+        val (ct, chronofold) = createInitialData(exactText1, "root")
+
+        val ops = diff(exactText2, chronofold, ct, authorName)
 
         expectedOpsSize?.let { ops shouldHaveSize it }
 
         ops.applyTo(ct, chronofold)
 
-        chronofold.getString() shouldBe expectedText
+        chronofold.getString() shouldBe exactText2
     }
 
     @Test
@@ -118,5 +125,19 @@ class DiffTest {
     fun testReplace() = diffTest(
         text1 = "11aaa|2233",
         text2 = "11bbb|2233",
+    )
+
+    @Test
+    fun testTextWithAuthorName() = diffTest(
+        text1 = "name1|name1",
+        text2 = "name1name1|name1",
+        authorName = "name1",
+    )
+
+    @Test
+    fun testTextWithMultipleAuthorNames() = diffTestExact(
+        exactText1 = "name1|name1||name2|",
+        exactText2 = "name1name2name2|name2||name1|",
+        authorName = "name1",
     )
 }
