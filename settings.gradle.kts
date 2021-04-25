@@ -23,6 +23,8 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
             version("kotlinxSerialization", "1.0.1")
+            alias("kotlinx-serialization-core").to("org.jetbrains.kotlinx", "kotlinx-serialization-core")
+                .versionRef("kotlinxSerialization")
             alias("kotlinx-serialization-json").to("org.jetbrains.kotlinx", "kotlinx-serialization-json")
                 .versionRef("kotlinxSerialization")
 

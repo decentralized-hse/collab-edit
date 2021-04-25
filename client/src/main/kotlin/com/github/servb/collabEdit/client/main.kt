@@ -1,8 +1,7 @@
 package com.github.servb.collabEdit.client
 
-import com.github.servb.collabEdit.client.externalDeclaration.diffMatchPatch.DiffMatchPatch
+import com.github.servb.collabEdit.chronofold.*
 import com.github.servb.collabEdit.client.ui.rootElement
-import com.github.servb.collabEdit.client.wrappers.diffMatchPatch.toTextAndResults
 import com.github.servb.collabEdit.protocol.signal.CandidateDescription
 import com.github.servb.collabEdit.protocol.signal.SessionDescription
 import com.github.servb.collabEdit.protocol.signal.ToClientMessage
@@ -11,6 +10,8 @@ import kotlinext.js.jsObject
 import kotlinext.js.require
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import org.w3c.dom.WebSocket
 import react.dom.render
 
@@ -64,8 +65,8 @@ fun onDisconnect() {
     handleLeave()
 }
 
-private val dmp = DiffMatchPatch()
-var previousText: String = ""
+private lateinit var ct: CausalTree
+private lateinit var chronofold: Chronofold
 
 fun onTextChange(text: ShownTextRepresentation) {
     render(
@@ -78,11 +79,25 @@ fun onTextChange(text: ShownTextRepresentation) {
         )
     )
     val sentText = text.toSent(name!!, connectedUser!!).sentText
-    val diffs = dmp.diff_main(previousText, sentText)
-    val patches = dmp.patch_make(previousText, diffs)
-    val textPatches = dmp.patch_toText(patches)
-    dataChannel.send(textPatches)
-    previousText = sentText
+    val ops = diff(sentText, chronofold, ct, name!!)
+    ops.applyTo(ct, chronofold)
+    val textToSend = json.encodeToString(ops)
+    console.log("going to send ${textToSend.length} chars:", ops)
+    val safeSizeToSendViaWebRtc =
+        100  // can't send everything right away, so let's split the message: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_data_channels#understanding_message_size_limits
+    textToSend.chunked(safeSizeToSendViaWebRtc).forEach {
+        console.log("sending part", it)
+        while (true) {
+            try {
+                dataChannel.send(it)
+                break
+            } catch (t: dynamic) {
+                console.error("can't send data, trying to resend", it, t)
+                // todo: add delay
+            }
+        }
+    }
+    console.log("sent successfully")
 }
 
 fun main() {
@@ -117,6 +132,10 @@ fun handleLogin(success: Boolean) {
     if (!success) {
         window.alert("Ooops...try a different username")
     } else {
+        val (newCt, newChronofold) = createInitialData("", "rootAuthor")
+        ct = newCt
+        chronofold = newChronofold
+
         render(ConnectionPage(userName = name!!, onConnect = ::onConnect))
 
         val configuration = jsObject<webkitRTCConfiguration> {
@@ -169,23 +188,40 @@ fun handleLogin(success: Boolean) {
             console.log("Ooops...error:", it)
         }
 
+        val received = mutableListOf<String>()
+
         dataChannel.onmessage = {
-            val textPatches = it.data as String
-            val patches = dmp.patch_fromText(textPatches)
-            val (newText) = dmp.patch_apply(patches, previousText).toTextAndResults()
-            previousText = newText
+            val data = it.data as String
+            received.add(data)
+            console.info("received part", data)
 
-            val shownText = SentTextRepresentation(newText).toShown(name!!, connectedUser!!)
+            if (data.endsWith(']')) {
+                val fullData = received.joinToString("")
+                received.clear()
 
-            render(
-                CollaborationPage(
-                    userName = name!!,
-                    otherUserName = connectedUser!!,
-                    text = shownText,
-                    onDisconnect = ::onDisconnect,
-                    onTextChange = ::onTextChange,
-                )
-            )
+                try {
+                    val ops = json.decodeFromString<List<Operation>>(fullData)
+                    console.log("received ops:", ops)
+                    ops.applyTo(ct, chronofold)
+                    val newText = chronofold.getString()
+                    console.log("new text:", newText)
+
+                    val shownText = SentTextRepresentation(newText).toShown(name!!, connectedUser!!)
+
+                    render(
+                        CollaborationPage(
+                            userName = name!!,
+                            otherUserName = connectedUser!!,
+                            text = shownText,
+                            onDisconnect = ::onDisconnect,
+                            onTextChange = ::onTextChange,
+                        )
+                    )
+                } catch (t: dynamic) {
+                    window.alert("bad data received, can't continue (see error in console)")
+                    console.error("bad data received", t)
+                }
+            }
         }
 
         dataChannel.onclose = {

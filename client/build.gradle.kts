@@ -19,6 +19,7 @@ dependencies {
     implementation(libs.kotlin.react.react)
     implementation(libs.kotlin.react.dom)
     implementation(libs.kotlin.styled)
+    implementation(libs.kotlinx.serialization.json)
     implementation(npm("webrtc-adapter", webrtcAdapterVersion))
     implementation(npm("bootstrap", bootstrapVersion))
     implementation(npm("react-bootstrap", reactBootstrapVersion))

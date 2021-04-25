@@ -1,5 +1,6 @@
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.serialization")
 }
 
 kotlin {
@@ -8,6 +9,12 @@ kotlin {
     }
 
     sourceSets {
+        getByName("commonMain") {
+            dependencies {
+                implementation(libs.kotlinx.serialization.core)
+            }
+        }
+
         getByName("commonTest") {
             dependencies {
                 implementation(libs.kotest.assertions.core)

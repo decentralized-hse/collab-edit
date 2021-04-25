@@ -1,13 +1,23 @@
 package com.github.servb.collabEdit.chronofold
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Timestamp(
+    @SerialName("a")
     val author: String,
+    @SerialName("i")
     val authorIndex: Int,
 )
 
+@Serializable
 data class Operation(
+    @SerialName("t")
     val timestamp: Timestamp,
+    @SerialName("r")
     val ref: Timestamp,
+    @SerialName("v")
     val value: Value,
 )
 

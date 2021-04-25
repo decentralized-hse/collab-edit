@@ -104,6 +104,12 @@ class DiffTest {
     )
 
     @Test
+    fun testCursorMoveLeft4() = diffTest(
+        text1 = "112233|",
+        text2 = "|112233",
+    )
+
+    @Test
     fun testCursorMoveRight1() = diffTest(
         text1 = "1|23",
         text2 = "12|3",
@@ -118,6 +124,12 @@ class DiffTest {
     @Test
     fun testCursorMoveRight3() = diffTest(
         text1 = "11|2233",
+        text2 = "112233|",
+    )
+
+    @Test
+    fun testCursorMoveRight4() = diffTest(
+        text1 = "|112233",
         text2 = "112233|",
     )
 

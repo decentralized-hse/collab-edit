@@ -1,22 +1,32 @@
 package com.github.servb.collabEdit.chronofold
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
 data class Node(
     val value: Value,
     var next: Next,
 )
 
+@Serializable
 sealed class Value {
 
     /** ∅. */
+    @Serializable
+    @SerialName("r")
     object Root : Value() {
 
         override fun toString(): String = "∅"
     }
 
     // todo: replace Char (uint16) with UInt (uint32)
+    @Serializable
+    @SerialName("s")
     data class Symbol(val char: Char) : Value()
 
     /** ⌫. */
+    @Serializable
+    @SerialName("t")
     object Tombstone : Value() {
 
         override fun toString(): String = "⌫"
