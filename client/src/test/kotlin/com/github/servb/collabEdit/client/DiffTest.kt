@@ -1,5 +1,6 @@
 package com.github.servb.collabEdit.client
 
+import com.github.servb.collabEdit.chronofold.applyTo
 import com.github.servb.collabEdit.chronofold.createInitialData
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -18,10 +19,7 @@ class DiffTest {
 
         ops shouldHaveSize 1
 
-        ops.forEach {
-            ct.add(it)
-            chronofold.add(it, ct)
-        }
+        ops.applyTo(ct, chronofold)
 
         chronofold.getString() shouldBe text2
     }
@@ -37,10 +35,7 @@ class DiffTest {
 
         ops shouldHaveSize 1
 
-        ops.forEach {
-            ct.add(it)
-            chronofold.add(it, ct)
-        }
+        ops.applyTo(ct, chronofold)
 
         chronofold.getString() shouldBe text2
     }
@@ -56,10 +51,7 @@ class DiffTest {
 
         ops shouldHaveSize 1
 
-        ops.forEach {
-            ct.add(it)
-            chronofold.add(it, ct)
-        }
+        ops.applyTo(ct, chronofold)
 
         chronofold.getString() shouldBe text2
     }
@@ -75,10 +67,7 @@ class DiffTest {
 
         ops shouldHaveSize 1
 
-        ops.forEach {
-            ct.add(it)
-            chronofold.add(it, ct)
-        }
+        ops.applyTo(ct, chronofold)
 
         chronofold.getString() shouldBe text2
     }
@@ -94,10 +83,21 @@ class DiffTest {
 
         ops shouldHaveSize 3
 
-        ops.forEach {
-            ct.add(it)
-            chronofold.add(it, ct)
-        }
+        ops.applyTo(ct, chronofold)
+
+        chronofold.getString() shouldBe text2
+    }
+
+    @Test
+    fun testInsertMultipleSymbolsToStart() {
+        val authorName = "myName"
+        val text1 = "|$authorName|"
+        val text2 = "my message, 12345 ms|$authorName|"
+        val (ct, chronofold) = createInitialData(text1, authorName)
+
+        val ops = diff(text2, chronofold, ct, authorName)
+
+        ops.applyTo(ct, chronofold)
 
         chronofold.getString() shouldBe text2
     }
@@ -113,13 +113,129 @@ class DiffTest {
 
         ops shouldHaveSize 3
 
-        ops.forEach {
-            ct.add(it)
-            chronofold.add(it, ct)
-        }
+        ops.applyTo(ct, chronofold)
 
         println(chronofold)
         println(ct)
+
+        chronofold.getString() shouldBe text2
+    }
+
+    @Test
+    fun testInsertMultipleSymbolsToStartAndEnd() {
+        val authorName = "myName"
+        val text1 = "|$authorName|"
+        val text2 = "my message, 12345 ms|$authorName|abcd"
+        val (ct, chronofold) = createInitialData(text1, authorName)
+
+        val ops = diff(text2, chronofold, ct, authorName)
+
+        ops.applyTo(ct, chronofold)
+
+        chronofold.getString() shouldBe text2
+    }
+
+    @Test
+    fun testCursorMoveLeft1() {
+        val authorName = "myName"
+        val text1 = "12|$authorName|3"
+        val text2 = "1|$authorName|23"
+
+        val (ct, chronofold) = createInitialData(text1, authorName)
+
+        val ops = diff(text2, chronofold, ct, authorName)
+
+        ops.applyTo(ct, chronofold)
+
+        chronofold.getString() shouldBe text2
+    }
+
+    @Test
+    fun testCursorMoveLeft2() {
+        val authorName = "myName"
+        val text1 = "1122|$authorName|33"
+        val text2 = "11|$authorName|2233"
+
+        val (ct, chronofold) = createInitialData(text1, authorName)
+
+        val ops = diff(text2, chronofold, ct, authorName)
+
+        ops.applyTo(ct, chronofold)
+
+        chronofold.getString() shouldBe text2
+    }
+
+    @Test
+    fun testCursorMoveLeft3() {
+        val authorName = "myName"
+        val text1 = "1122|$authorName|33"
+        val text2 = "|$authorName|112233"
+
+        val (ct, chronofold) = createInitialData(text1, authorName)
+
+        val ops = diff(text2, chronofold, ct, authorName)
+
+        ops.applyTo(ct, chronofold)
+
+        chronofold.getString() shouldBe text2
+    }
+
+    @Test
+    fun testCursorMoveRight1() {
+        val authorName = "myName"
+        val text1 = "1|$authorName|23"
+        val text2 = "12|$authorName|3"
+
+        val (ct, chronofold) = createInitialData(text1, authorName)
+
+        val ops = diff(text2, chronofold, ct, authorName)
+
+        ops.applyTo(ct, chronofold)
+
+        chronofold.getString() shouldBe text2
+    }
+
+    @Test
+    fun testCursorMoveRight2() {
+        val authorName = "myName"
+        val text1 = "11|$authorName|2233"
+        val text2 = "1122|$authorName|33"
+
+        val (ct, chronofold) = createInitialData(text1, authorName)
+
+        val ops = diff(text2, chronofold, ct, authorName)
+
+        ops.applyTo(ct, chronofold)
+
+        chronofold.getString() shouldBe text2
+    }
+
+    @Test
+    fun testCursorMoveRight3() {
+        val authorName = "myName"
+        val text1 = "11|$authorName|2233"
+        val text2 = "112233|$authorName|"
+
+        val (ct, chronofold) = createInitialData(text1, authorName)
+
+        val ops = diff(text2, chronofold, ct, authorName)
+
+        ops.applyTo(ct, chronofold)
+
+        chronofold.getString() shouldBe text2
+    }
+
+    @Test
+    fun testReplace() {
+        val authorName = "myName"
+        val text1 = "11aaa|$authorName|2233"
+        val text2 = "11bbb|$authorName|2233"
+
+        val (ct, chronofold) = createInitialData(text1, authorName)
+
+        val ops = diff(text2, chronofold, ct, authorName)
+
+        ops.applyTo(ct, chronofold)
 
         chronofold.getString() shouldBe text2
     }

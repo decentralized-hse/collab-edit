@@ -106,6 +106,9 @@ class Chronofold private constructor(private val log: MutableList<Node>) {
     }
 
     override fun toString(): String {
-        return "Chronofold(${log.joinToString("\n", "\n", "\n")})"
+        val logWithIndices = log
+            .withIndex()
+            .joinToString("\n", "\n", "\n") { (i, it) -> "$i: $it" }
+        return "Chronofold($logWithIndices)"
     }
 }

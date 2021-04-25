@@ -5,23 +5,24 @@ import com.github.servb.collabEdit.client.externalDeclaration.diffMatchPatch.Dif
 
 private val dmp = DiffMatchPatch()
 
-// todo: multiple separated symbols
 fun diff(newText: String, chronofold: Chronofold, ct: CausalTree, author: String): List<Operation> {
     val oldText = chronofold.getString()
     val diff = dmp
         .diff_main(oldText, newText)
         .unsafeCast<Array<Array<Any>>>()
         .map { (op, value) -> op.unsafeCast<Int>() to value.unsafeCast<String>() }
-    val textTimestamps = chronofold.getTimestamps(ct)
+    val textTimestamps = chronofold.getTimestamps(ct).toTypedArray()
 
     val result = mutableListOf<Operation>()
+
+    fun createLastTimestamp(): Timestamp = Timestamp(author, ct.size + result.size)
 
     var curIdx = 0
     diff.forEach { (op, value) ->
         when (op) {
             0 -> curIdx += value.length
             1 -> {
-                var ts = Timestamp(author, ct.size + result.size)
+                var ts = createLastTimestamp()
                 var ref = when (curIdx) {
                     0 -> ct.ndxInv(0)
                     else -> textTimestamps[curIdx - 1]
@@ -29,17 +30,23 @@ fun diff(newText: String, chronofold: Chronofold, ct: CausalTree, author: String
                 value.forEach { c ->
                     result.add(Operation(ts, ref, Value.Symbol(c)))
                     ref = ts
-                    ts = Timestamp(author, ct.size + result.size)
+                    ts = createLastTimestamp()
                 }
             }
             -1 -> {
-                var ts = Timestamp(author, ct.size + result.size)
+                if (value.isEmpty()) {
+                    return@forEach
+                }
+
+                var ts = createLastTimestamp()
                 var ref = textTimestamps[curIdx + value.length - 1]
                 repeat(value.length) {
                     result.add(Operation(ts, ref, Value.Tombstone))
                     ref = ts
-                    ts = Timestamp(author, ct.size + result.size)
+                    ts = createLastTimestamp()
                 }
+                textTimestamps[curIdx + value.length - 1] = ts.copy(authorIndex = ts.authorIndex - 1)
+                curIdx += value.length
             }
         }
     }

@@ -34,3 +34,10 @@ fun createInitialData(string: String, author: String): Pair<CausalTree, Chronofo
 
     return CausalTree(*ctLog.toTypedArray()) to Chronofold(*chronofoldLog.toTypedArray())
 }
+
+fun List<Operation>.applyTo(ct: CausalTree, chronofold: Chronofold) {
+    this.forEach { op ->
+        ct.add(op)
+        chronofold.add(op, ct)
+    }
+}
