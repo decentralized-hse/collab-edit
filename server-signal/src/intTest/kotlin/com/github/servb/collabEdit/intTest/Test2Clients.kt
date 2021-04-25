@@ -288,22 +288,16 @@ class Test2Clients : BehaviorSpec({
 
                                 collaborationPage2.input(text1)
 
-                                delay(1000)  // todo: try to remove delays here after dealing with rebases
-
                                 and("I place cursor to the start of textarea") {
                                     collaborationPage2.input(Keys.PAGE_UP)
 
                                     and("I add text from the first tab") {
                                         val text2 = "\nmy message 2, ${System.currentTimeMillis()} ms"
 
-                                        delay(1000)  // todo: try to remove delays here after dealing with rebases
-
                                         collaborationPage1.input(text2)
 
                                         and("I input text from the second tab") {
                                             val text3 = "my message 3, ${System.currentTimeMillis()} ms"
-
-                                            delay(1000)  // todo: try to remove delays here after dealing with rebases
 
                                             collaborationPage2.input(text3)
 
