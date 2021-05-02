@@ -13,7 +13,7 @@ data channels: [1](https://github.com/webrtc/samples/issues/1227), [2](https://g
 
 After it, you can open `client/build/distributions/index.html` in a browser.
 
-## Running singnaling server
+## Running signaling server
 
 ```shell
 ./gradlew :server-signal:run
