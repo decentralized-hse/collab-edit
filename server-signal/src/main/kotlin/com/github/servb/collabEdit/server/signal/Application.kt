@@ -8,25 +8,31 @@ import io.ktor.application.install
 import io.ktor.application.log
 import io.ktor.features.CallLogging
 import io.ktor.features.StatusPages
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.cio.websocket.*
+import io.ktor.http.content.default
+import io.ktor.http.content.files
+import io.ktor.http.content.static
 import io.ktor.request.path
 import io.ktor.response.respond
-import io.ktor.response.respondText
-import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.util.combineSafe
 import io.ktor.websocket.DefaultWebSocketServerSession
 import io.ktor.websocket.WebSockets
 import io.ktor.websocket.webSocket
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import org.slf4j.event.Level
+import java.io.File
 import java.time.Duration
+import kotlin.collections.set
 
 fun main() {
-    embeddedServer(Netty, port = 9090) {
+    val port = System.getProperty("signal.port")?.toIntOrNull() ?: 9090
+    println("Starting the signaling server on port $port...")
+
+    embeddedServer(Netty, port = port) {
         module()
     }.start(wait = true)
 }
@@ -58,8 +64,10 @@ fun Application.module(testing: Boolean = false) {
     val users = mutableMapOf<String, UserInfo>()
 
     routing {
-        get("/") {
-            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
+        static("/") {
+            val staticRoot = File(System.getProperty("client.dir.path"))
+            files(staticRoot)
+            default(staticRoot.combineSafe("index.html"))
         }
 
         install(StatusPages) {

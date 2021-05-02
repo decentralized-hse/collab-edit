@@ -13,6 +13,7 @@ import kotlinx.browser.window
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import org.w3c.dom.WebSocket
+import org.w3c.dom.url.URL
 import react.dom.render
 
 var name: String? = null
@@ -21,7 +22,10 @@ var connectedUser: String? = null
 lateinit var yourConn: webkitRTCPeerConnection
 lateinit var dataChannel: RTCDataChannel
 
-val conn = WebSocket("ws://localhost:9090")
+private val url = URL(window.location.href).searchParams.get("ws")?.let { "ws://$it" }
+    ?: URL(window.location.href).apply { protocol = protocol.replace("http", "ws") }.href
+
+val conn = WebSocket(url)
 
 fun send(msg: ToServerMessage) {
     conn.send(ToServerMessage.encode(msg))

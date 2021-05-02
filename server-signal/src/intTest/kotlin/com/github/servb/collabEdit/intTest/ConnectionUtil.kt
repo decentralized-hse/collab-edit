@@ -4,9 +4,9 @@ import io.ktor.server.engine.ApplicationEngine
 
 object ConnectionUtil {
 
-    private val clientFile: String get() = System.getProperty("collab.edit.client.file")
+    const val port = 9091
 
-    val clientUrl = "file://$clientFile"
+    const val clientUrl = "http://localhost:$port"
 }
 
 fun ApplicationEngine.stop() = stop(500, 1500)

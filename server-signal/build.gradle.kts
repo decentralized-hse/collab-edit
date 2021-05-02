@@ -24,6 +24,16 @@ val intTestImplementation: Configuration by configurations.getting {
 
 configurations["intTestRuntimeOnly"].extendsFrom(configurations.runtimeOnly.get())
 
+val webpackTask = project(":client").tasks.getByName<KotlinWebpack>("browserProductionWebpack")
+
+tasks.run.get().apply {
+    systemProperties = System.getProperties().map { (k, v) -> k.toString() to v }.toMap() + mapOf(
+        "client.dir.path" to webpackTask.destinationDirectory.absolutePath,
+    )
+
+    dependsOn(webpackTask)
+}
+
 val integrationTest = task<Test>("integrationTest") {
     description = "Runs integration tests."
     group = "verification"
@@ -35,10 +45,8 @@ val integrationTest = task<Test>("integrationTest") {
     testClassesDirs = sourceSets[intTestSourceSetName].output.classesDirs
     classpath = sourceSets[intTestSourceSetName].runtimeClasspath
 
-    val webpackTask = project(":client").tasks.getByName<KotlinWebpack>("browserProductionWebpack")
-
     systemProperties = System.getProperties().map { (k, v) -> k.toString() to v }.toMap() + mapOf(
-        "collab.edit.client.file" to "${webpackTask.destinationDirectory.absolutePath}/index.html",
+        "client.dir.path" to webpackTask.destinationDirectory.absolutePath,
     )
 
     shouldRunAfter(tasks.test)

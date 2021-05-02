@@ -2,6 +2,7 @@ package com.github.servb.collabEdit.intTest
 
 import com.codeborne.selenide.Condition.exactValue
 import com.codeborne.selenide.SelenideDriver
+import com.github.servb.collabEdit.intTest.ConnectionUtil.port
 import com.github.servb.collabEdit.server.signal.module
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.core.spec.style.scopes.BehaviorSpecRootScope
@@ -18,7 +19,7 @@ private var givenSignalingServerNextId = 0
 
 fun BehaviorSpecRootScope.givenSignalingServer(test: suspend GivenScope.(server: ApplicationEngine) -> Unit) {
     given("signaling server (${givenSignalingServerNextId++})") {
-        val signalServer = embeddedServer(Netty, port = 9090) { module(testing = true) }
+        val signalServer = embeddedServer(Netty, port = port) { module(testing = true) }
         signalServer.start()
 
         test(signalServer)  // signaling server can be stopped there
