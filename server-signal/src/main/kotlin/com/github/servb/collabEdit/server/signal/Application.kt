@@ -50,6 +50,12 @@ fun Application.module(testing: Boolean = false) {
         masking = false
     }
 
+    install(StatusPages) {
+        exception<Throwable> {
+            call.respond(HttpStatusCode.InternalServerError)
+        }
+    }
+
     class UserInfo(
         val connection: DefaultWebSocketServerSession,
         var name: String?,
@@ -68,12 +74,6 @@ fun Application.module(testing: Boolean = false) {
             val staticRoot = File(System.getProperty("client.dir.path"))
             files(staticRoot)
             default(staticRoot.combineSafe("index.html"))
-        }
-
-        install(StatusPages) {
-            exception<Throwable> {
-                call.respond(HttpStatusCode.InternalServerError)
-            }
         }
 
         webSocket("/") {
