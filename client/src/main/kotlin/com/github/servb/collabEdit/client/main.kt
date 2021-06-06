@@ -1,12 +1,13 @@
 package com.github.servb.collabEdit.client
 
 import com.github.servb.collabEdit.chronofold.*
+import com.github.servb.collabEdit.client.connection.PeerConnection
+import com.github.servb.collabEdit.client.connection.WebkitWebRtcPeerConnection
 import com.github.servb.collabEdit.client.ui.rootElement
 import com.github.servb.collabEdit.protocol.signal.CandidateDescription
 import com.github.servb.collabEdit.protocol.signal.SessionDescription
 import com.github.servb.collabEdit.protocol.signal.ToClientMessage
 import com.github.servb.collabEdit.protocol.signal.ToServerMessage
-import kotlinext.js.jsObject
 import kotlinext.js.require
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -16,22 +17,19 @@ import org.w3c.dom.WebSocket
 import org.w3c.dom.url.URL
 import react.dom.render
 
-var name: String? = null
-var connectedUser: String? = null
+private var name: String? = null
+private var peerConnection: PeerConnection? = null
 
-lateinit var yourConn: webkitRTCPeerConnection
-lateinit var dataChannel: RTCDataChannel
-
-private val url = URL(window.location.href).searchParams.get("ws")?.let { "ws://$it" }
+private val signalUrl = URL(window.location.href).searchParams.get("ws")?.let { "ws://$it" }
     ?: URL(window.location.href).apply { protocol = protocol.replace("http", "ws") }.href
 
-val conn = WebSocket(url)
+private val signalConnection = WebSocket(signalUrl)
 
-fun send(msg: ToServerMessage) {
-    conn.send(ToServerMessage.encode(msg))
+fun sendToSignal(msg: ToServerMessage) {
+    signalConnection.send(ToServerMessage.encode(msg))
 }
 
-fun render(appState: AppState) {
+private fun render(appState: AppState) {
     render(document.getElementById("root")) {
         rootElement {
             this.appState = appState
@@ -39,32 +37,23 @@ fun render(appState: AppState) {
     }
 }
 
-fun onLogin(userName: String) {
+private fun onLogin(userName: String) {
     name = userName
+    peerConnection = WebkitWebRtcPeerConnection()
     if (name!!.isNotEmpty()) {
-        send(ToServerMessage.Login(name!!))
+        sendToSignal(ToServerMessage.Login(name!!))
     }
 }
 
-fun onConnect(userNameToCall: String) {
+private fun onConnect(userNameToCall: String) {
     if (userNameToCall.isNotEmpty()) {
-        connectedUser = userNameToCall
-        yourConn.createOffer()
-            .then { offer ->
-                console.log("created offer:", offer)
-
-                send(ToServerMessage.Offer(SessionDescription(sdp = offer.sdp, type = offer.type), connectedUser!!))
-
-                yourConn.setLocalDescription(offer)
-            }
-            .catch {
-                console.error("error when creating offer", it)
-            }
+        peerConnection!!.connectedUser = userNameToCall
+        peerConnection!!.onConnect()
     }
 }
 
-fun onDisconnect() {
-    send(ToServerMessage.Leave(connectedUser!!))
+private fun onDisconnect() {
+    sendToSignal(ToServerMessage.Leave(peerConnection!!.connectedUser!!))
 
     handleLeave()
 }
@@ -72,17 +61,17 @@ fun onDisconnect() {
 private lateinit var ct: CausalTree
 private lateinit var chronofold: Chronofold
 
-fun onTextChange(text: ShownTextRepresentation) {
+private fun onTextChange(text: ShownTextRepresentation) {
     render(
         CollaborationPage(
             userName = name!!,
-            otherUserName = connectedUser!!,
+            otherUserName = peerConnection!!.connectedUser!!,
             text = text,
             onDisconnect = ::onDisconnect,
             onTextChange = ::onTextChange,
         )
     )
-    val sentText = text.toSent(name!!, connectedUser!!).sentText
+    val sentText = text.toSent(name!!, peerConnection!!.connectedUser!!).sentText
     val ops = diff(sentText, chronofold, ct, name!!)
     ops.applyTo(ct, chronofold)
     val textToSend = json.encodeToString(ops)
@@ -93,7 +82,7 @@ fun onTextChange(text: ShownTextRepresentation) {
         console.log("sending part", it)
         while (true) {
             try {
-                dataChannel.send(it)
+                peerConnection!!.send(it)
                 break
             } catch (t: dynamic) {
                 console.error("can't send data, trying to resend", it, t)
@@ -109,12 +98,12 @@ fun main() {
 
     render(NotConnectedPage)
 
-    conn.onopen = {
+    signalConnection.onopen = {
         console.log("Connected to the signaling server")
         render(LoginPage(::onLogin))
     }
 
-    conn.onmessage = {
+    signalConnection.onmessage = {
         console.log("Got message", it.data)
         val data = ToClientMessage.decode(it.data as String)
 
@@ -127,14 +116,14 @@ fun main() {
         }
     }
 
-    conn.onerror = {
+    signalConnection.onerror = {
         console.log("Got error", it)
     }
 }
 
-fun handleLogin(success: Boolean) {
+private fun handleLogin(success: Boolean) {
     if (!success) {
-        window.alert("Ooops...try a different username")
+        window.alert("Can't use this username, maybe it's already taken. Try another one")
     } else {
         val (newCt, newChronofold) = createInitialData("", "rootAuthor")
         ct = newCt
@@ -142,134 +131,71 @@ fun handleLogin(success: Boolean) {
 
         render(ConnectionPage(userName = name!!, onConnect = ::onConnect))
 
-        val configuration = jsObject<webkitRTCConfiguration> {
-            iceServers = arrayOf(
-                jsObject {
-                    url = "stun:stun1.l.google.com:19302"
-                },
-            )
-        }
-
-        yourConn =
-            webkitRTCPeerConnection(configuration, jsObject { optional = arrayOf(jsObject { RtpDataChannels = true }) })
-
-        yourConn.onicecandidate = {
-            console.log("yourConn.onicecandidate", it)
-            if (it.candidate != null) {
-                send(
-                    ToServerMessage.Candidate(
-                        CandidateDescription(
-                            candidate = it.candidate!!.candidate,
-                            sdpMid = it.candidate!!.sdpMid,
-                            sdpMLineIndex = it.candidate!!.sdpMLineIndex,
-                            usernameFragment = it.candidate!!.usernameFragment,
-                        ),
-                        connectedUser!!
-                    )
-                )
-            }
-        }
-
-        yourConn.onconnectionstatechange = {
-            console.log("onconnectionstatechange", yourConn.iceConnectionState, it)
-        }
-
-        dataChannel = yourConn.createDataChannel("channel1", jsObject { reliable = true })
-
-        dataChannel.onopen = {
-            render(
-                CollaborationPage(
-                    userName = name!!,
-                    otherUserName = connectedUser!!,
-                    text = ShownTextRepresentation(null, ""),
-                    onDisconnect = ::onDisconnect,
-                    onTextChange = ::onTextChange,
-                )
-            )
-        }
-
-        dataChannel.onerror = {
-            console.log("Ooops...error:", it)
-        }
-
         val received = mutableListOf<String>()
 
-        dataChannel.onmessage = {
-            val data = it.data as String
-            received.add(data)
-            console.info("received part", data)
-
-            if (data.endsWith(']')) {
-                val fullData = received.joinToString("")
-                received.clear()
-
-                try {
-                    val ops = json.decodeFromString<List<Operation>>(fullData)
-                    console.log("received ops:", ops)
-                    ops.applyTo(ct, chronofold)
-                    val newText = chronofold.getString()
-                    console.log("new text:", newText)
-
-                    val shownText = SentTextRepresentation(newText).toShown(name!!, connectedUser!!)
-
-                    render(
-                        CollaborationPage(
-                            userName = name!!,
-                            otherUserName = connectedUser!!,
-                            text = shownText,
-                            onDisconnect = ::onDisconnect,
-                            onTextChange = ::onTextChange,
-                        )
+        peerConnection!!.onLogin(
+            onOpen = {
+                render(
+                    CollaborationPage(
+                        userName = name!!,
+                        otherUserName = peerConnection!!.connectedUser!!,
+                        text = ShownTextRepresentation(null, ""),
+                        onDisconnect = ::onDisconnect,
+                        onTextChange = ::onTextChange,
                     )
-                } catch (t: dynamic) {
-                    window.alert("bad data received, can't continue (see error in console)")
-                    console.error("bad data received", t)
-                }
-            }
-        }
+                )
+            },
+            onMessage = { data ->
+                received.add(data)
+                console.info("received part", data)
 
-        dataChannel.onclose = {
-            console.log("data channel is closed")
-            handleLogin(success = true)
-        }
+                if (data.endsWith(']')) {
+                    val fullData = received.joinToString("")
+                    received.clear()
+
+                    try {
+                        val ops = json.decodeFromString<List<Operation>>(fullData)
+                        console.log("received ops:", ops)
+                        ops.applyTo(ct, chronofold)
+                        val newText = chronofold.getString()
+                        console.log("new text:", newText)
+
+                        val shownText =
+                            SentTextRepresentation(newText).toShown(name!!, peerConnection!!.connectedUser!!)
+
+                        render(
+                            CollaborationPage(
+                                userName = name!!,
+                                otherUserName = peerConnection!!.connectedUser!!,
+                                text = shownText,
+                                onDisconnect = ::onDisconnect,
+                                onTextChange = ::onTextChange,
+                            )
+                        )
+                    } catch (t: dynamic) {
+                        window.alert("bad data received, can't continue (see error in console)")
+                        console.error("bad data received", t)
+                    }
+                }
+            },
+            onClose = { handleLogin(success = true) },
+        )
     }
 }
 
-fun handleOffer(offer: SessionDescription, connectedUserName: String) {
-    connectedUser = connectedUserName
-    yourConn.setRemoteDescription(jsObject {
-        type = offer.type
-        sdp = offer.sdp
-    })
-
-    yourConn.createAnswer()
-        .then { answer ->
-            yourConn.setLocalDescription(answer)
-            send(ToServerMessage.Answer(SessionDescription(sdp = answer.sdp, type = answer.type), connectedUser!!))
-        }
-        .catch {
-            console.error("Error when creating an answer", it)
-        }
+private fun handleOffer(offer: SessionDescription, connectedUserName: String) {
+    peerConnection!!.handleOffer(offer, connectedUserName)
 }
 
-fun handleAnswer(answer: SessionDescription) {
-    yourConn.setRemoteDescription(jsObject {
-        sdp = answer.sdp
-        type = answer.type
-    })
+private fun handleAnswer(answer: SessionDescription) {
+    peerConnection!!.handleAnswer(answer)
 }
 
-fun handleCandidate(candidate: CandidateDescription) {
-    yourConn.addIceCandidate(jsObject {
-        this.candidate = candidate.candidate
-        this.sdpMLineIndex = candidate.sdpMLineIndex
-        this.sdpMid = candidate.sdpMid
-        this.usernameFragment = candidate.usernameFragment
-    })
+private fun handleCandidate(candidate: CandidateDescription) {
+    peerConnection!!.handleCandidate(candidate)
 }
 
-fun handleLeave() {
-    connectedUser = null
-    yourConn.close()
-    yourConn.onicecandidate = null
+private fun handleLeave() {
+    peerConnection!!.close()
+    peerConnection = null
 }
