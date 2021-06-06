@@ -139,6 +139,21 @@ fun Application.module(testing: Boolean = false) {
                                 otherUser.send(ToClientMessage.Leave)
                             }
                         }
+                        is ToServerMessage.Connect -> {
+                            val otherUser = users[message.name]
+
+                            if (otherUser != null) {
+                                otherUser.otherName = thisName
+                                otherUser.send(ToClientMessage.Connect(thisName!!))
+                            }
+                        }
+                        is ToServerMessage.Message -> {
+                            val otherUser = users[message.name]
+
+                            if (otherUser != null) {
+                                otherUser.send(ToClientMessage.Message(message.data))
+                            }
+                        }
                         else -> {
                             log.warn("Bad message: $frame")
                         }

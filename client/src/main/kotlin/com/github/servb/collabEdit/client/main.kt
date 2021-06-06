@@ -2,6 +2,7 @@ package com.github.servb.collabEdit.client
 
 import com.github.servb.collabEdit.chronofold.*
 import com.github.servb.collabEdit.client.connection.PeerConnection
+import com.github.servb.collabEdit.client.connection.WebSocketPeerConnection
 import com.github.servb.collabEdit.client.connection.WebkitWebRtcPeerConnection
 import com.github.servb.collabEdit.client.ui.rootElement
 import com.github.servb.collabEdit.protocol.signal.CandidateDescription
@@ -37,9 +38,12 @@ private fun render(appState: AppState) {
     }
 }
 
-private fun onLogin(userName: String) {
+private fun onLogin(userName: String, useWebRtc: Boolean) {
     name = userName
-    peerConnection = WebkitWebRtcPeerConnection()
+    peerConnection = when (useWebRtc) {
+        true -> WebkitWebRtcPeerConnection()
+        false -> WebSocketPeerConnection(signalConnection)
+    }
     if (name!!.isNotEmpty()) {
         sendToSignal(ToServerMessage.Login(name!!))
     }
@@ -76,21 +80,34 @@ private fun onTextChange(text: ShownTextRepresentation) {
     ops.applyTo(ct, chronofold)
     val textToSend = json.encodeToString(ops)
     console.log("going to send ${textToSend.length} chars:", ops)
-    val safeSizeToSendViaWebRtc =
-        100  // can't send everything right away, so let's split the message: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_data_channels#understanding_message_size_limits
-    textToSend.chunked(safeSizeToSendViaWebRtc).forEach {
-        console.log("sending part", it)
-        while (true) {
-            try {
-                peerConnection!!.send(it)
-                break
-            } catch (t: dynamic) {
-                console.error("can't send data, trying to resend", it, t)
-                // todo: add delay
-            }
-        }
-    }
+    peerConnection!!.send(textToSend)
     console.log("sent successfully")
+}
+
+private fun onMessage(data: String) {
+    try {
+        val ops = json.decodeFromString<List<Operation>>(data)
+        console.log("received ops:", ops)
+        ops.applyTo(ct, chronofold)
+        val newText = chronofold.getString()
+        console.log("new text:", newText)
+
+        val shownText =
+            SentTextRepresentation(newText).toShown(name!!, peerConnection!!.connectedUser!!)
+
+        render(
+            CollaborationPage(
+                userName = name!!,
+                otherUserName = peerConnection!!.connectedUser!!,
+                text = shownText,
+                onDisconnect = ::onDisconnect,
+                onTextChange = ::onTextChange,
+            )
+        )
+    } catch (t: dynamic) {
+        window.alert("bad data received, can't continue (see error in console)")
+        console.error("bad data received", t)
+    }
 }
 
 fun main() {
@@ -113,6 +130,11 @@ fun main() {
             is ToClientMessage.Answer -> handleAnswer(data.answer)
             is ToClientMessage.Candidate -> handleCandidate(data.candidate)
             is ToClientMessage.Leave -> handleLeave()
+            is ToClientMessage.Connect -> {
+                peerConnection!!.connectedUser = data.name
+                onOpen()
+            }
+            is ToClientMessage.Message -> onMessage(data.data)
         }
     }
 
@@ -131,56 +153,24 @@ private fun handleLogin(success: Boolean) {
 
         render(ConnectionPage(userName = name!!, onConnect = ::onConnect))
 
-        val received = mutableListOf<String>()
-
         peerConnection!!.onLogin(
-            onOpen = {
-                render(
-                    CollaborationPage(
-                        userName = name!!,
-                        otherUserName = peerConnection!!.connectedUser!!,
-                        text = ShownTextRepresentation(null, ""),
-                        onDisconnect = ::onDisconnect,
-                        onTextChange = ::onTextChange,
-                    )
-                )
-            },
-            onMessage = { data ->
-                received.add(data)
-                console.info("received part", data)
-
-                if (data.endsWith(']')) {
-                    val fullData = received.joinToString("")
-                    received.clear()
-
-                    try {
-                        val ops = json.decodeFromString<List<Operation>>(fullData)
-                        console.log("received ops:", ops)
-                        ops.applyTo(ct, chronofold)
-                        val newText = chronofold.getString()
-                        console.log("new text:", newText)
-
-                        val shownText =
-                            SentTextRepresentation(newText).toShown(name!!, peerConnection!!.connectedUser!!)
-
-                        render(
-                            CollaborationPage(
-                                userName = name!!,
-                                otherUserName = peerConnection!!.connectedUser!!,
-                                text = shownText,
-                                onDisconnect = ::onDisconnect,
-                                onTextChange = ::onTextChange,
-                            )
-                        )
-                    } catch (t: dynamic) {
-                        window.alert("bad data received, can't continue (see error in console)")
-                        console.error("bad data received", t)
-                    }
-                }
-            },
+            onOpen = ::onOpen,
+            onMessage = ::onMessage,
             onClose = { handleLogin(success = true) },
         )
     }
+}
+
+private fun onOpen() {
+    render(
+        CollaborationPage(
+            userName = name!!,
+            otherUserName = peerConnection!!.connectedUser!!,
+            text = ShownTextRepresentation(null, ""),
+            onDisconnect = ::onDisconnect,
+            onTextChange = ::onTextChange,
+        )
+    )
 }
 
 private fun handleOffer(offer: SessionDescription, connectedUserName: String) {

@@ -27,6 +27,14 @@ sealed class ToServerMessage {
     @SerialName("leave")
     data class Leave(val name: String) : ToServerMessage()
 
+    @Serializable
+    @SerialName("connect")
+    data class Connect(val name: String) : ToServerMessage()
+
+    @Serializable
+    @SerialName("message")
+    data class Message(val data: String, val name: String) : ToServerMessage()
+
     companion object {
 
         private val json = Json.Default

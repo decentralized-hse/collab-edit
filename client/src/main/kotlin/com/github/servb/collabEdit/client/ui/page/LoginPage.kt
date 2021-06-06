@@ -14,6 +14,7 @@ import react.dom.label
 import styled.css
 import styled.styledButton
 import styled.styledDiv
+import styled.styledInput
 
 external interface LoginPageProps : RProps {
 
@@ -22,6 +23,7 @@ external interface LoginPageProps : RProps {
 
 val loginPage = functionalComponent<LoginPageProps> { props ->
     var userName by useState("")
+    var useWebRtc by useState(false)
 
     styledDiv {
         css {
@@ -71,11 +73,34 @@ val loginPage = functionalComponent<LoginPageProps> { props ->
                 attrs {
                     id = "loginBtn"
                     onClickFunction = {
-                        props.appState.onLogin(userName)
+                        props.appState.onLogin(userName, useWebRtc)
                     }
                 }
 
                 +"Sign In"
+            }
+        }
+
+        styledDiv {
+            css {
+                display = Display.flex
+                alignItems = Align.center
+                justifyContent = JustifyContent.spaceAround
+            }
+
+            label {
+                styledInput(InputType.checkBox) {
+                    css {
+                        marginRight = 5.px
+                    }
+                    attrs {
+                        onClickFunction = {
+                            useWebRtc = !useWebRtc
+                        }
+                        value = useWebRtc.toString()
+                    }
+                }
+                +"Connect using p2p WebRTC (may require white IP)"
             }
         }
     }

@@ -4,7 +4,7 @@ sealed class AppState
 
 object NotConnectedPage : AppState()
 
-data class LoginPage(val onLogin: (userName: String) -> Unit) : AppState()
+data class LoginPage(val onLogin: (userName: String, useWebRtc: Boolean) -> Unit) : AppState()
 
 data class ConnectionPage(
     val userName: String,

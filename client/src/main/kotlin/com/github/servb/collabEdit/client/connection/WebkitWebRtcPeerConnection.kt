@@ -11,11 +11,24 @@ import kotlinext.js.jsObject
 
 class WebkitWebRtcPeerConnection : PeerConnection() {
 
-    lateinit var yourConn: webkitRTCPeerConnection
-    lateinit var dataChannel: RTCDataChannel
+    private lateinit var yourConn: webkitRTCPeerConnection
+    private lateinit var dataChannel: RTCDataChannel
 
     override fun send(data: String) {
-        dataChannel.send(data)
+        val safeSizeToSendViaWebRtc =
+            100  // can't send everything right away, so let's split the message: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_data_channels#understanding_message_size_limits
+        data.chunked(safeSizeToSendViaWebRtc).forEach {
+            console.log("sending part", it)
+            while (true) {
+                try {
+                    dataChannel.send(it)
+                    break
+                } catch (t: dynamic) {
+                    console.error("can't send data, trying to resend", it, t)
+                    // todo: add delay
+                }
+            }
+        }
     }
 
     override fun onLogin(
@@ -63,9 +76,20 @@ class WebkitWebRtcPeerConnection : PeerConnection() {
             console.log("Ooops...error:", it)
         }
 
+        val received = mutableListOf<String>()
+
         dataChannel.onmessage = {
             val data = it.data as String
-            onMessage(data)
+
+            received.add(data)
+            console.info("received part", data)
+
+            if (data.endsWith(']')) {
+                val fullData = received.joinToString("")
+                received.clear()
+
+                onMessage(fullData)
+            }
         }
 
         dataChannel.onclose = {
