@@ -18,6 +18,9 @@ class LoginPage(val driver: SelenideDriver) {
 
     fun loginAs(userName: String): ConnectionPage {
         driver.`$`("#usernameInput").sendKeys(userName)
+        if (!driver.`$`("#useWebrtc").isSelected) {
+            driver.`$`("#useWebrtc").click()
+        }
         driver.`$`("#loginBtn").click()
         return driver.page(ConnectionPage(driver, userName))
     }

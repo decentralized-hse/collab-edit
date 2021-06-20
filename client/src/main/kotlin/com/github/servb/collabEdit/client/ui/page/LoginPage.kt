@@ -98,6 +98,7 @@ val loginPage = functionalComponent<LoginPageProps> { props ->
                             useWebRtc = !useWebRtc
                         }
                         value = useWebRtc.toString()
+                        id = "useWebrtc"
                     }
                 }
                 +"Connect using p2p WebRTC (may require white IP)"
